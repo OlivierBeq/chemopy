@@ -8,6 +8,8 @@ import numpy
 from rdkit import Chem
 from rdkit.Chem import rdchem
 
+from pychem.topology import _HallKierDeltas
+
 periodicTable = rdchem.GetPeriodicTable()
 
 
@@ -190,31 +192,9 @@ def CalculateChi6ch(mol: Chem.Mol) -> float:
     return _CalculateChinch(mol, NumCycle=6)
 
 
-def _HKDeltas(mol,skipHs=1):
-    """Calculate Kier & Hall valence delta-values for molecular connectivity.
-
-    From Kier L. and Hall L., J. Pharm. Sci. (1983), 72(10),1170-1173.
-    """
-    global periodicTable
-    res=[]
-    for atom in mol.GetAtoms():
-        n=atom.GetAtomicNum()
-        if n>1:
-            nV=periodicTable.GetNOuterElecs(n)
-            nHs=atom.GetTotalNumHs()
-            if n<10:
-                res.append(float(nV-nHs))
-            else:
-                res.append(float(nV-nHs)/float(n-nV-1))
-        elif not skipHs:
-            res.append(0.0)
-    return res
-    
-
-
 def CalculateChiv0(mol: Chem.Mol) -> float:
     """Calculate valence molecular connectivity chi index for path order 0."""
-    deltas = _HKDeltas(mol, skipHs=0)
+    deltas = _HallKierDeltas(mol, skipHs=0)
     while 0 in deltas:
         deltas.remove(0)
     deltas = numpy.array(deltas, 'd')
@@ -225,7 +205,7 @@ def CalculateChiv0(mol: Chem.Mol) -> float:
 def _CalculateChivnp(mol: Chem.Mol, NumPath: int = 1) -> float:
     """Calculate valence molecular connectivity chi index for path order 1."""
     accum = 0.0
-    deltas = _HKDeltas(mol, skipHs=0)
+    deltas = _HallKierDeltas(mol, skipHs=0)
     for path in Chem.FindAllPathsOfLengthN(mol, NumPath + 1, useBonds=0):
         cAccum = 1.0
         for idx in path:
@@ -386,7 +366,7 @@ def CalculateDeltaChiv3c4pc(mol: Chem.Mol) -> float:
 def _CalculateChivnch(mol: Chem.Mol, NumCyc=3):
     """Calculate valence molecular connectivity chi index for cycles of n."""
     accum = 0.0
-    deltas = _HKDeltas(mol, skipHs=0)
+    deltas = _HallKierDeltas(mol, skipHs=0)
     for tup in mol.GetRingInfo().AtomRings():
         cAccum = 1.0
         if len(tup) == NumCyc:
