@@ -13,28 +13,10 @@ import scipy
 from openbabel import pybel
 
 from pychem.GeoOpt import _ReadCoordinates
+from pychem.utils import GetAtomDistance, GetGeometricalDistanceMatrix
 
 
-def GetAtomDistance(x: List[float], y: List[float]) -> float:
-    """Calculate Euclidean distance between two atomic coordinates."""
-    temp = [math.pow(x[0] - y[0], 2), math.pow(x[1] - y[1], 2), math.pow(x[2] - y[2], 2)]
-    res = math.sqrt(sum(temp))
-    return res
-
-
-def GetGementricalDistanceMatrix(CoordinateList: List[List[float]]) -> scipy.matrix:
-    """Calculate distance matrix from coordinate list."""
-    NAtom = len(CoordinateList)
-    DistanceMatrix = scipy.zeros((NAtom, NAtom))
-    for i in range(NAtom - 1):
-        for j in range(i + 1, NAtom):
-            DistanceMatrix[i, j] = GetAtomDistance(CoordinateList[i], CoordinateList[j])
-            DistanceMatrix[j, i] = DistanceMatrix[i, j]
-    return DistanceMatrix
-
-
-           
-def _GetMassCenter(MassCoordinates: List[Tuple[float, Tuple[float, float, float]]]) -> Tuple[float, float, float]:
+def _GetCenterOfMass(MassCoordinates: List[Tuple[float, Tuple[float, float, float]]]) -> Tuple[float, float, float]:
     """Get the center of mass.
 
     :param MassCoordinates: list of atomic masses and coordinates
@@ -156,9 +138,9 @@ def CalculateGravitational3D1(mol: pybel.Molecule, ChargeCoordinates: List[List[
             dis = GetAtomDistance(temp[i][1], temp[j][1])
             result += temp[i][0] * temp[j][0] / scipy.power(dis, p=2)
     return round(float(result) / 100, 3)
-            
 
-def CalculateGravitational3D2((mol,ChargeCoordinates)):
+
+def CalculateGravitational3D2((mol: pybel.Molecule, ChargeCoordinates: List[List[float]]) -> float:
     """Calculate Gravitational 3D index from bonded atoms.
 
     Katritzky, A.R. et al., J.Phys.Chem. 1996, 100, 10400-10407]
@@ -291,7 +273,7 @@ def CalculateAverageGeometricalDistanceDegree(ChargeCoordinates: List[List[float
     temp = []
     for i in ChargeCoordinates:
         temp.append([float(i[1]), float(i[2]), float(i[3])])
-    DistanceMatrix = GetGementricalDistanceMatrix(temp)
+    DistanceMatrix = GetGeometricalDistanceMatrix(temp)
     nAT = len(temp)
     res = sum(sum(DistanceMatrix)) / nAT
     return round(res, 3)
@@ -306,8 +288,7 @@ def CalculateAbsEigenvalueSumOnGeometricMatrix(ChargeCoordinates: List[List[floa
     temp = []
     for i in ChargeCoordinates:
         temp.append([float(i[1]), float(i[2]), float(i[3])])
-    DistanceMatrix = GetGementricalDistanceMatrix(temp) 
-    
+    DistanceMatrix = GetGeometricalDistanceMatrix(temp)
     u, s, vt = scipy.linalg.svd(DistanceMatrix)
     return round(sum(abs(s)), 3)
 
@@ -329,7 +310,7 @@ def CalculateSPANR(mol: pybel.Molecule, ChargeCoordinates: List[List[float]]) ->
     temp = []
     for i, j in enumerate(ChargeCoordinates):
         temp.append([mol.atoms[i].atomicmass, [float(j[1]), float(j[2]), float(j[3])]])
-    masscenter = _GetMassCenter(temp)  
+    masscenter = _GetCenterOfMass(temp)
     res = []
     for i in temp:
         res.append(GetAtomDistance(i[1], masscenter))
@@ -349,8 +330,7 @@ def CalculateAverageSPANR(mol: pybel.Molecule, ChargeCoordinates: List[List[floa
     for i, j in enumerate(ChargeCoordinates):
         temp.append([mol.atoms[i].atomicmass, [float(j[1]), float(j[2]), float(j[3])]])
     nAT = len(temp)
-    masscenter = _GetMassCenter(temp)      
-    
+    masscenter = _GetCenterOfMass(temp)
     res = []
     for i in temp:
         res.append(GetAtomDistance(i[1], masscenter))
@@ -386,7 +366,8 @@ def GetGeometric(mol: pybel.Molecule) -> dict:
     res['W3D'] = Calculate3DWienerWithoutH(ChargeCoordinates)
     res['Petitj3D'] = CalculatePetitjean3DIndex(ChargeCoordinates)
     res['GeDi'] = CalculateGemetricalDiameter(ChargeCoordinates)
-    res['grav'] = CalculateGravitational3D1(mol, ChargeCoordinates)
+    res['grav1'] = CalculateGravitational3D1(mol, ChargeCoordinates)
+    # res['grav2'] = CalculateGravitational3D2(mol, ChargeCoordinates)
     res['rygr'] = CalculateRadiusofGyration(mol, ChargeCoordinates)
     res['Harary3D'] = CalculateHarary3D(ChargeCoordinates)
     res['AGDD'] = CalculateAverageGeometricalDistanceDegree(ChargeCoordinates)
@@ -394,8 +375,8 @@ def GetGeometric(mol: pybel.Molecule) -> dict:
     res['SPAN'] = CalculateSPANR(mol, ChargeCoordinates)
     res['ASPAN'] = CalculateAverageSPANR(mol, ChargeCoordinates)
     res['MEcc'] = CalculateMolecularEccentricity(mol, ChargeCoordinates)
-    #res.update(CalculatePrincipalMomentofInertia(mol,ChargeCoordinates))
-    #res.update(CalculateRatioPMI(mol,ChargeCoordinates))
+    res.update(CalculatePrincipalMomentofInertia(mol, ChargeCoordinates))
+    res.update(CalculateRatioPMI(mol, ChargeCoordinates))
     return res
 
 
