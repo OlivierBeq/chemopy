@@ -97,12 +97,64 @@ def CalculateHydrophilicityFactor(mol: Chem.Mol) -> float:
     return round(res, 3)
 
 
-def CalculateXlogP(mol: Chem.Mol) -> float:
+def CalculateXlogP(mol: Union[Chem.Mol, List[Chem.Mol]]) -> Union[float, List[float]]:
     """Calculate XLogP.
 
     From Cheng T. et al., J. Chem. Inf. Model. 2007, 47, 2140-2148.
     """
-    pass
+    # Check XlogP is properly configured
+    etp = ExternalToolsParser(path=None, required_fields=['path'], skip_errors=False)
+    if 'XLOGP' not in etp.tools.keys():
+        raise NotImplementedError("XLOGP is not set up.")
+    # Make sure to work with a list of molecules
+    if isinstance(mol, Chem.Mol):
+        mol = [mol]
+    # Prepare temporary files
+    running_dir = tempfile.mkdtemp()
+    output_sd_path = os.path.join(running_dir, 'xlogp_calc.sdf')
+    output_xlogp_path = os.path.join(running_dir, 'xlogp_calc.out')
+    outputmol = pybel.Outputfile('sdf', output_sd_path, overwrite=True)
+    # Write all molecules to SD file
+    for mol_ in mol:
+        pybelmol = pybel.readstring('sdf', Chem.MolToMolBlock(mol_))
+        outputmol.write(pybelmol)
+    outputmol.close()
+    # Prepare pat to executable file
+    params = etp.tools['XLOGP']
+    if params['path'].startswith('.'):
+        path_prefix = os.path.realpath(os.path.join(os.path.dirname(__file__), params['path']))
+    else:
+        path_prefix = os.path.realpath(params['path'])
+    exTTDB = os.path.realpath(os.path.join(path_prefix, '../parameter/DEFAULT.TTDB'))
+    if platform.startswith('win32'):
+        xlogp_bin = os.path.join(path_prefix, params['win_bin'])
+    elif platform.startswith('linux'):
+        if architecture().startswith('32'):
+            xlogp_bin = os.path.join(path_prefix, params['lnx_bin'])
+        else:
+            xlogp_bin = os.path.join(path_prefix, params['lnx64_bin'])
+    elif platform.startswith('darwin'):
+        xlogp_bin = xlogp_bin = os.path.join(path_prefix, params['mac_bin'])
+    else:
+        Dispose(running_dir)
+        raise RuntimeError(f'Platform ({platform}) not supported.')
+    # Run XLOGP
+    retcode = subprocess.call(f'{xlogp_bin} {output_sd_path} {output_xlogp_path} {exTTDB}', shell=False)  # noqa: S603
+    if retcode:
+        Dispose(running_dir)
+        raise RuntimeError('XLOGP did not succeed to run properly.')
+    values = []
+    with open(output_xlogp_path) as xlogp:
+        for line in xlogp:
+            if line.startswith('Missing'):
+                raise RuntimeError('Atom parameter missing.')
+            raw_data = line.split()
+            if not raw_data[-1].startswith('(WARN'):
+                values.append(float(raw_data[-1]))
+            else:
+                values.append(float(raw_data[-2]))
+    Dispose(running_dir)
+    return values if len(values) > 1 else values[0]
 
 
 def CalculateXlogP2(mol: Chem.Mol) -> float:
@@ -110,7 +162,79 @@ def CalculateXlogP2(mol: Chem.Mol) -> float:
 
     From Cheng T. et al., J. Chem. Inf. Model. 2007, 47, 2140-2148.
     """
-    pass
+    values = CalculateXlogP(mol)
+    if isinstance(values, float):
+        return values * values
+    return [value * value for value in values]
+
+
+def CalculateXlogS(mol: Union[Chem.Mol, List[Chem.Mol]]) -> Union[float, List[float]]:
+    """Calculate XLogS.
+
+    From Duan B.G. et al., Acta Phys. Sin. 2012, 28(10), 2249-2257.
+    """
+    # Check XlogS is properly configured
+    etp = ExternalToolsParser(path=None, required_fields=['path'], skip_errors=False)
+    if 'XLOGS' not in etp.tools.keys():
+        raise NotImplementedError("XLOGS is not set up.")
+    # Make sure to work with a list of molecules
+    if isinstance(mol, Chem.Mol):
+        mol = [mol]
+    # Prepare temporary files
+    running_dir = tempfile.mkdtemp()
+    output_sd_path = os.path.join(running_dir, 'xlogs_calc.sdf')
+    output_xlogs_path = os.path.join(running_dir, 'xlogs_calc.out')
+    outputmol = pybel.Outputfile('sdf', output_sd_path, overwrite=True)
+    # Write all molecules to SD file
+    for mol_ in mol:
+        pybelmol = pybel.readstring('sdf', Chem.MolToMolBlock(mol_))
+        outputmol.write(pybelmol)
+    outputmol.close()
+    # Prepare pat to executable file
+    params = etp.tools['XLOGS']
+    if params['path'].startswith('.'):
+        path_prefix = os.path.realpath(os.path.join(os.path.dirname(__file__), params['path']))
+    else:
+        path_prefix = os.path.realpath(params['path'])
+    if platform.startswith('win32'):
+        xlogs_bin = os.path.realpath(os.path.join(path_prefix, params['win_bin']))
+    elif platform.startswith('linux'):
+        if architecture().startswith('32'):
+            xlogs_bin = os.path.realpath(os.path.join(path_prefix, params['lnx_bin']))
+        else:
+            xlogs_bin = os.path.realpath(os.path.join(path_prefix, params['lnx64_bin']))
+    else:
+        Dispose(running_dir)
+        raise RuntimeError(f'Platform ({platform}) not supported.')
+    # Run XLOGS
+    exTTDB = os.path.realpath(os.path.join(os.path.dirname(xlogs_bin), '../parameter/DEFAULT.TTDB'))
+    retcode = subprocess.call(f'{xlogs_bin} {output_sd_path} {output_xlogs_path} {exTTDB}', shell=False)  # noqa: S603
+    if retcode:
+        Dispose(running_dir)
+        raise RuntimeError('XLOGS did not succeed to run properly.')
+    values = []
+    with open(output_xlogs_path) as xlogs:
+        for line in xlogs:
+            if line.startswith('Missing'):
+                raise RuntimeError('Atom parameter missing.')
+            raw_data = line.split()
+            if not raw_data[-1].startswith('(WARN'):
+                values.append(float(raw_data[-1]))
+            else:
+                values.append(float(raw_data[-2]))
+    Dispose(running_dir)
+    return values if len(values) > 1 else values[0]
+
+
+def CalculateXlogS2(mol: Chem.Mol) -> float:
+    """Calculate XLogS^2.
+
+    From Duan B.G. et al., Acta Phys. Sin. 2012, 28(10), 2249-2257.
+    """
+    values = CalculateXlogS(mol)
+    if isinstance(values, float):
+        return values * values
+    return [value * value for value in values]
 
 
 MolecularProperty = {'LogP': CalculateMolLogP,
@@ -127,6 +251,16 @@ def GetMolecularProperties(mol: Chem.Mol) -> dict:
     result = {}
     for DesLabel in MolecularProperty.keys():
         result[DesLabel] = MolecularProperty[DesLabel](mol)
+    try:
+        result['XLogP'] = CalculateXlogP(mol)
+        result['XLogP2'] = CalculateXlogP2(mol)
+    except RuntimeError:
+        pass
+    try:
+        result['XLogS'] = CalculateXlogS(mol)
+        result['XLogS2'] = CalculateXlogS(mol)
+    except RuntimeError:
+        pass
     return result
 
 
