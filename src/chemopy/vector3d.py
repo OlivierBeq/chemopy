@@ -1,61 +1,85 @@
-#Vector3d.py
+# -*- coding: utf-8 -*-
+
+
+"""Class to manipulate 3D vectors."""
+
+
+from __future__ import annotations
 
 import math
 import random
+from typing import Iterable
 
+import numpy as np
 
 RAD2DEG = 180.0 / math.pi
 DEG2RAD = math.pi / 180.0
 SMALL = 1E-6
 
 
-def is_near_zero(a: float) -> bool:
-    """Return if x is lower than 1E-6."""
-    return a < SMALL
+def is_near_zero(x: float, epsilon: float = None) -> bool:
+    """Return if x is lower than epsilon.
+
+    :param x: small number to test
+    :param epsilon: extremelly small number x needs to be smaller than
+                    (default: 1e-6)
+    """
+    return x < SMALL if epsilon is None else x < epsilon
 
 
-class Vector3d:
+class Vector3D:
     """Class holding 3D vector coordinates."""
 
     def __init__(self, x: float = 0.0, y: float = 0.0, z: float = 0.0) -> None:
-        """Initialize a Vector3d."""
+        """Initialize a Vector3D."""
         self.x = float(x)
         self.y = float(y)
         self.z = float(z)
 
-    def __add__(self, rhs: Vector3d) -> Vector3d:
+    def __add__(self, rhs: Vector3D) -> Vector3D:
         """Return the resulting vector from adding another vector to the current one.
 
-        :param rhs: other Vector3d.
+        :param rhs: other Vector3D.
         """
-        return Vector3d(rhs.x + self.x, rhs.y + self.y, rhs.z + self.z)
+        return Vector3D(rhs.x + self.x, rhs.y + self.y, rhs.z + self.z)
 
-    def __sub__(self, rhs: Vector3d) -> Vector3d:
+    def __sub__(self, rhs: Vector3D) -> Vector3D:
         """Return the resulting vector from substracting another vector from the current one.
 
-        :param rhs: other Vector3d.
+        :param rhs: other Vector3D.
         """
-        return Vector3d(self.x - rhs.x, self.y - rhs.y, self.z - rhs.z)
+        return Vector3D(self.x - rhs.x, self.y - rhs.y, self.z - rhs.z)
 
-    def __neg__(self) -> Vector3d:
+    def __mul__(self, rhs: Vector3D) -> Vector3D:
+        """Return the Hadamard product of the two vectors."""
+        return Vector3D(self.x * rhs.x, self.y * rhs.y, self.z * rhs.z)
+
+    def __pow__(self, n: int) -> Vector3D:
+        """Execute n times the Hadamard product."""
+        temp, acc = self.copy(), self.copy()
+        for _ in range(n):
+            acc *= temp
+        return acc
+
+    def __neg__(self) -> Vector3D:
         """Return the opposite vector of the current one."""
-        return Vector3d(-self.x, -self.y, -self.z)
+        return Vector3D(-self.x, -self.y, -self.z)
 
-    def __pos__(self) -> Vector3d:
+    def __pos__(self) -> Vector3D:
         """Return a copy of the current vector."""
-        return Vector3d(self.x, self.y, self.z)
+        return Vector3D(self.x, self.y, self.z)
 
-    def __eq__(self, rhs: Vector3d) -> bool:
+    def __eq__(self, rhs: Vector3D) -> bool:
         """Test for close equality between two vectors.
 
-        :param rhs: other Vector3d.
+        :param rhs: other Vector3D.
         """
         return (is_near_zero(self.x - rhs.x) and is_near_zero(self.y - rhs.y) and is_near_zero(self.z - rhs.z))
 
-    def __ne__(self, rhs: Vector3d) -> bool:
+    def __ne__(self, rhs: Vector3D) -> bool:
         """Test for inequality between two vectors.
 
-        :param rhs: other Vector3d.
+        :param rhs: other Vector3D.
         """
         return not (self == rhs)
 
@@ -65,17 +89,21 @@ class Vector3d:
 
     def __repr__(self) -> str:
         """Unambiguous representation."""
-        return f'Vector3d({self.x:.2f}, {self.y:.2f}, {self.z:.2f})'
+        return f'Vector3D({self.x:.2f}, {self.y:.2f}, {self.z:.2f})'
 
-    def set(self, x, y, z):
-        """Set values of vector."""
-        self.x = x
-        self.y = y
-        self.z = z
-
-    def copy(self) -> Vector3d:
+    def copy(self) -> Vector3D:
         """Copy the current vector."""
-        return Vector3d(self.x, self.y, self.z)
+        return Vector3D(self.x, self.y, self.z)
+
+    def dot(self, rhs: Vector3D) -> Vector3D:
+        """Return the dot product of the vector with another one."""
+        return self.x * rhs.x + self.y * rhs.y + self.z * rhs.z
+
+    def cross(self, rhs: Vector3D) -> Vector3D:
+        """Return the cross product of the vector with another one."""
+        return Vector3D(self.y * rhs.z - self.z * rhs.y,
+                        self.z * rhs.x - self.x * rhs.z,
+                        self.x * rhs.y - self.y * rhs.x)
 
     def length_sq(self) -> float:
         """Return the square value of the euclidean norm."""
@@ -85,7 +113,7 @@ class Vector3d:
         """Return the euclidean norm."""
         return math.sqrt(self.length_sq())
 
-    def scale(self, scale: float) -> Vector3d:
+    def scale(self, scale: float) -> Vector3D:
         """Scale the vector by a scalar.
 
         :param scale: value to scale each coordinate by.
@@ -94,11 +122,11 @@ class Vector3d:
         self.y *= scale
         self.z *= scale
 
-    def normalize(self) -> Vector3d:
+    def normalize(self) -> Vector3D:
         """Scale the vector to unit length."""
         self.scale(1.0 / self.length())
 
-    def scaled_vec(self, scale: float) -> Vector3d:
+    def scaled_vec(self, scale: float) -> Vector3D:
         """Return a copy scaled to specified length.
 
         :param scale: value to scale each coordinate by.
@@ -107,11 +135,11 @@ class Vector3d:
         v.scale(scale)
         return v
 
-    def normal_vec(self) -> Vector3d:
+    def normal_vec(self) -> Vector3D:
         """Return a copy scaled to unit length."""
         return self.scaled_vec(1.0 / self.length())
 
-    def parallel_vec(self, axis: Vector3d) -> Vector3d:
+    def parallel_vec(self, axis: Vector3D) -> Vector3D:
         """Return a vector parallel to the current one using the specified axis.
 
         :param axis: axis along which to search for the parallel vector
@@ -123,14 +151,14 @@ class Vector3d:
             result = axis.scaled_vec(self.dot(axis) / axis.length() / axis.length())
         return result
 
-    def perpendicular_vec(self, axis) -> Vector3d:
+    def perpendicular_vec(self, axis) -> Vector3D:
         """Return a vector perpendicular to the current one using the specified axis.
 
         :param axis: axis along which to search for the perpendicular vector
         """
         return self - self.parallel_vec(axis)
 
-    def transform(self, matrix) -> Vector3d:
+    def transform(self, matrix) -> Vector3D:
         """Apply transformation from a matrix to the vector.
 
         :param matrix: transforamtion matrix
@@ -148,6 +176,36 @@ class Vector3d:
             matrix.elem22 * self.z + \
             matrix.elem32
         self.x, self.y, self.z = x, y, z
+
+    def diff_length_sq(self, rhs: Vector3D) -> float:
+        """Return the squared euclidean norm of the difference of the two vectors.
+
+        :param rhs: other Vector3D.
+        """
+        diff = self - rhs
+        return diff.dot(diff)
+
+    def diff_length(self, rhs: Vector3D) -> float:
+        """Return the squared euclidean norm of the difference of the two vectors.
+
+        :param rhs: other Vector3D.
+        """
+        return math.sqrt(self.diff_length_sq(rhs))
+
+    def to_numpy_row(self):
+        """Transform to a numpy matrix row."""
+        return np.matrix([self.x, self.y, self.z], dtype=float)
+
+    def to_numpy_col(self):
+        """Transform to a numpy matrix column."""
+        return self.to_numpy_row().T
+
+    @staticmethod
+    def from_numpy(array: np.array) -> Vector3D:
+        """Instanciate a Vector3D from numpy array."""
+        if len(array) > 3:
+            raise ValueError(f'numpy.array({array}) has more values than Vector3D can hold.')
+        return Vector3D(array[0], array[1], array[2])
 
 
 def normalize_angle(angle: float):
@@ -177,19 +235,7 @@ def angle_diff(angle1: float, angle2: float, radians: bool = True) -> float:
     norm_angle1 = normalize_angle(angle1)
     norm_angle2 = normalize_angle(angle2)
     diff = normalize_angle(norm_angle1 - norm_angle2)
-    return diff
-
-
-def dot(a: Vector3d, b: Vector3d) -> Vector3d:
-        """Return the dot product of the vector with another one."""
-        return a.x * b.x + a.y * b.y + a.z * b.z
-
-
-def CrossProductVec(a: Vector3d, b: Vector3d) -> Vector3d:
-    """Return the cross product of the vector with another one."""
-    return Vector3d(a.y * b.z - a.z * b.y,
-                    a.z * b.x - a.x * b.z,
-                    a.x * b.y - a.y * b.x)
+    return diff if radians else radians / math.pi * 180
 
 
 def pos_distance(p1, p2):
@@ -245,177 +291,80 @@ def RotatedPos(theta, anchor, center, pos):
     return Rotation(center - anchor, theta, center).transform_vec(pos)
 
 
-def ProjectedPos(length, angle, dihedral, p1, p2, p3):
-    """Project position."""
-    norm = plane_normal(p1, p2, p3)
-    axis = p3 - p2
-    vec_diff = axis.scaled_vec(-length)
-    vec_diff = RotationAtOrigin(norm, -angle).transform_vec(vec_diff)
-    vec_diff = RotationAtOrigin(axis, dihedral).transform_vec(vec_diff)
-    return p3 + vec_diff
+# def ProjectedPos(length, angle, dihedral, p1, p2, p3):
+#     """Project."""
+#     norm = plane_normal(p1, p2, p3)
+#     axis = p3 - p2
+#     vec_diff = axis.scaled_vec(-length)
+#     vec_diff = RotationAtOrigin(norm, -angle).transform_vec(vec_diff)
+#     vec_diff = RotationAtOrigin(axis, dihedral).transform_vec(vec_diff)
+    # return p3 + vec_diff
 
 
-class Matrix3d:
-    """Object to manipulate three dimensional matrices."""
+class Matrix3D(np.matrix):
+    """Object to manipulate three dimensional matrices.
 
-      def __init__(self):
-        """Create a new Matrix3D object."""
-        self.elem00 = 1.0
-        self.elem01 = 0.0
-        self.elem02 = 0.0
-        self.elem03 = 0.0
+    Wrapper around numpy matrix object with shape (4, 4).
+    """
 
-        self.elem10 = 0.0
-        self.elem11 = 1.0
-        self.elem12 = 0.0
-        self.elem13 = 0.0
+    def __new__(cls, values: Iterable[float] = None, order='C') -> None:
+        """Create a new Matrix3D object.
 
-        self.elem20 = 0.0
-        self.elem21 = 0.0
-        self.elem22 = 1.0
-        self.elem23 = 0.0
+        :param values: values of the matrix
+        :param order: index order of provided values
+                      'C': column-first indexing (first items of values will make first row)
+                      'F': row-first indexing (first items of values will make first column)
+        """
+        if values is None:
+            self = np.zeros((4, 4), dtype=float)
+        else:
+            len_ = len(list(values))
+            if not len_ == 16:
+                raise ValueError(f'Matrix3D cannot be instanciated with {len_} values')
+            self = np.matrix(values, dtype=float).reshape((4, 4), order=order)
+        return self.view(cls)
 
-        self.elem30 = 0.0
-        self.elem31 = 0.0
-        self.elem32 = 0.0
-        self.elem33 = 1.0
-
-    def __str__(self):
-    """Pretty print representation."""
-        row1 = "  [% .2f, % .2f, % .2f ]\n" % \
-                  (self.elem00, self.elem01, self.elem02)
-        row2 = "  [% .2f, % .2f, % .2f ]\n" % \
-                  (self.elem10, self.elem11, self.elem12)
-        row3 = "  [% .2f, % .2f, % .2f ]\n" % \
-                  (self.elem20, self.elem21, self.elem22)
-        row4 = "  [ ------------------ ]\n"
-        row5 = "  [% .2f, % .2f, % .2f ]" % \
-                  (self.elem30, self.elem31, self.elem32)
-        return row1 + row2 + row3 + row4 + row5
-
-    def elem(self, i, j):
-        """Get the element at specified location."""
-        if j==0:
-            if i==0: return self.elem00
-            if i==1: return self.elem10
-            if i==2: return self.elem20
-            if i==3: return self.elem30
-        if j==1:
-            if i==0: return self.elem01
-            if i==1: return self.elem11
-            if i==2: return self.elem21
-            if i==3: return self.elem31
-        if j==2:
-            if i==0: return self.elem02
-            if i==1: return self.elem12
-            if i==2: return self.elem22
-            if i==3: return self.elem32
-        if j==3:
-            if i==0: return self.elem03
-            if i==1: return self.elem13
-            if i==2: return self.elem23
-            if i==3: return self.elem33
-
-    def set_elem(self, i, j, val):
-    """Set the element value at specified location."""
-        if j==0:
-            if i==0: self.elem00 = val
-            if i==1: self.elem10 = val
-            if i==2: self.elem20 = val
-            if i==3: self.elem30 = val
-        if j==1:
-            if i==0: self.elem01 = val
-            if i==1: self.elem11 = val
-            if i==2: self.elem21 = val
-            if i==3: self.elem31 = val
-        if j==2:
-            if i==0: self.elem02 = val
-            if i==1: self.elem12 = val
-            if i==2: self.elem22 = val
-            if i==3: self.elem32 = val
-        if j==3:
-            if i==0: self.elem03 = val
-            if i==1: self.elem13 = val
-            if i==2: self.elem23 = val
-            if i==3: self.elem33 = val
-
-    def __eq__(self, rhs):
-    """Verify equality with other matrix."""
-        for i in range(0, 3):
-            for j in range(0, 3):
-                if abs(self.elem(i,j) - rhs.elem(i,j)) > SMALL:
-                    return False
-        return True
-    
-    def __mul__(self, rhs):
-        """Multiply with another Matrix3D."""
-        c = Matrix3d()
-        for i in range(0, 3):
-            for j in range(0, 3):
-                val = 0.0
-                for k in range(0, 3):
-                    val += self.elem(k,i) * rhs.elem(j,k)
-                c.set_elem(j, i, val)
-            # c(3,i) is the translation vector
-            val = self.elem(3, i)
-            for k in range(0,3):
-                val += self.elem(k,i) * rhs.elem(3,k)
-            c.set_elem(3, i, val)
-        return c
-
-
-    def transform_vec(self, v: Vector3d) -> Vector3d:
+    def transform_vector(self, vector: Vector3D) -> Vector3D:
         """Apply the transformation to the vector.
 
         :param vector: vector to be transformed
         """
-        # v'[i] = sum(over j) M[j][i] v[j]
-        x = self.elem00 * v.x + \
-            self.elem10 * v.y + \
-            self.elem20 * v.z + \
-            self.elem30
-        y = self.elem01 * v.x + \
-            self.elem11 * v.y + \
-            self.elem21 * v.z + \
-            self.elem31
-        z = self.elem02 * v.x + \
-            self.elem12 * v.y + \
-            self.elem22 * v.z + \
-            self.elem32
-        return Vector3d(x, y, z)
+        return Vector3D.from_numpy(self[:3, :3].T * vector.to_numpy_col() + self[3, :3].T)
 
 
-    def RotationAtOrigin(axis, theta):
+def RotationAtOrigin(axis, theta):
     """Create a matrix for a rotation around the origin.
 
     :param axis: axis around which the rotation should be performed
     :param theta: angle of the rotation
     """
-      v = axis.normal_vec()
-      c = math.cos(float(theta))
-      s = math.sin(float(theta))
-      t = 1.0 - c
-      m = Matrix3d()
-      m.elem00 = t * v.x * v.x  +        c
-      m.elem01 = t * v.x * v.y  +  v.z * s
-      m.elem02 = t * v.x * v.z  -  v.y * s
-      m.elem10 = t * v.y * v.x  -  v.z * s
-      m.elem11 = t * v.y * v.y  +        c
-      m.elem12 = t * v.y * v.z  +  v.x * s
-      m.elem20 = t * v.z * v.x  +  v.y * s
-      m.elem21 = t * v.z * v.y  -  v.x * s
-      m.elem22 = t * v.z * v.z  +        c
-      return m
+    v = axis.normal_vec()
+    c = math.cos(float(theta))
+    s = math.sin(float(theta))
+    t = 1.0 - c
+    m = Matrix3D([[t * v.x * v.x + c,
+                   t * v.x * v.y + v.z * s,
+                   t * v.x * v.z - v.y * s,
+                   0],
+                  [t * v.y * v.x - v.z * s,
+                   t * v.y * v.y + c,
+                   t * v.y * v.z + v.x * s,
+                   0],
+                  [t * v.z * v.x + v.y * s,
+                   t * v.z * v.y - v.x * s,
+                   t * v.z * v.z + c,
+                   0],
+                  [0, 0, 0, 0]])
+    return m
 
 
-def Translation(p):
+def Translation(vector):
     """Create a translation matrix.
 
     :param vector: vector of translation
-    """  m = Matrix3d()
-    m.elem30 = p.x
-    m.elem31 = p.y
-    m.elem32 = p.z
+    """
+    m = Matrix3D()
+    m[3, :3] = [vector.x, vector.y, vector.z]
     return m
 
 
@@ -430,18 +379,21 @@ def Superposition3(ref1, ref2, ref3, mov1, mov2, mov3):
     """Superimpose."""
     mov_diff = mov2 - mov1
     ref_diff = ref2 - ref1
-    m1 = Matrix3d()
+
+    m1 = Matrix3D()
     if math.fabs(vec_angle(mov_diff, ref_diff)) < SMALL:
-        m1 = Translation(ref1-mov1)
+        m1 = Translation(ref1 - mov1)
     else:
-        axis = CrossProductVec(mov_diff, ref_diff)
+        axis = mov_diff.cross(ref_diff)
         torsion = vec_dihedral(ref_diff, axis, mov_diff)
         rot = RotationAtOrigin(axis, torsion)
         trans = Translation(ref2 - rot.transform_vec(mov2))
-        m1 = trans*rot
+        m1 = trans * rot
+
     mov_diff = ref2 - m1.transform_vec(mov3)
     ref_diff = ref2 - ref3
-    m = Matrix3d()
+
+    m = Matrix3D()
     if math.fabs(vec_angle(mov_diff, ref_diff)) < SMALL:
         m = m1
     else:
@@ -449,29 +401,28 @@ def Superposition3(ref1, ref2, ref3, mov1, mov2, mov3):
         torsion = vec_dihedral(ref_diff, axis, mov_diff)
         m2 = RotationAtOrigin(axis, torsion)
         m3 = Translation(ref2 - m2.transform_vec(ref2))
-        m = m3*m2*m1
-      return m
+        m = m3 * m2 * m1
+
+    return m
 
 
 def RandomVec():
     """Get a random vector."""
-    return Vector3d(random.uniform(-100, 100),
-                    random.uniform(-100, 100),
-                    random.uniform(-100, 100))
+    return Vector3D(random.uniform(-100, 100),  # noqa: S311
+                    random.uniform(-100, 100),  # noqa: S311
+                    random.uniform(-100, 100))  # noqa: S311
 
 
 def RandomOriginRotation():
     """Get a random rotation around the origin."""
     axis = RandomVec()
-    angle = random.uniform(-math.pi/2, math.pi/2)
+    angle = random.uniform(-math.pi / 2, math.pi / 2)  # noqa: S311
     return RotationAtOrigin(axis, angle)
 
 
 def RandomTransform():
     """Get a random transformation matrix."""
     axis = RandomVec()
-    angle = random.uniform(-math.pi/2, math.pi/2)
+    angle = random.uniform(-math.pi / 2, math.pi / 2)  # noqa: S311
     center = RandomVec()
     return Rotation(axis, angle, center)
-
-
