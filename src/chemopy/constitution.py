@@ -7,14 +7,12 @@ from rdkit import Chem
 from rdkit.Chem import Lipinski as LPK
 
 
-def CalculateMolWeight(mol):
+def CalculateHeavyMolWeight(mol: Chem.Mol) -> float:
     """Calculate molecular weight of heavy atoms."""
     MolWeight = 0
     for atom in mol.GetAtoms():
         if atom.GetAtomicNum() != 1:
             MolWeight += atom.GetMass()
-    return MolWeight
-
     return MolWeight
 
 
@@ -211,34 +209,34 @@ def CalculatePath6(mol: Chem.Mol) -> float:
 
 _constitutional = {'Weight': CalculateHeavyMolWeight,
                    'AWeight': CalculateAverageMolWeight,
-                   'nhyd': CalculateHydrogenNumber,
-                   'nhal': CalculateHalogenNumber,
-                   'nhet': CalculateHeteroNumber,
-                   'nhev': CalculateHeavyAtomNumber,
-                   'ncof': CalculateFluorinNumber,
-                   'nocl': CalculateChlorinNumber,
-                   'nobr': CalculateBromineNumber,
-                   'nvoi': CalculateIodineNumber,
-                   'ncarb': CalculateCarbonNumber,
-                   'nphos': CalculatePhosphorNumber,
-                   'nulph': CalculateOxygenNumber,
-                   'noxy': CalculateOxygenNumber,
-                   'nnitro': CalculateNitrogenNumber,
-                   'nring': CalculateRingNumber,
-                   'nrot': CalculateRotationBondNumber,
-                   'ndonr': CalculateHdonorNumber,
-                   'naccr': CalculateHacceptorNumber,
-                   'nsb': CalculateSingleBondNumber,
-                   'ndb': CalculateDoubleBondNumber,
-                   'naro': CalculateAromaticBondNumber,
-                   'ntb': CalculateTripleBondNumber,
-                   'nta': CalculateAllAtomNumber,
-                   'PC1': CalculatePath1,
-                   'PC2': CalculatePath2,
-                   'PC3': CalculatePath3,
-                   'PC4': CalculatePath4,
-                   'PC5': CalculatePath5,
-                   'PC6': CalculatePath6}
+                   'nH': CalculateHydrogenNumber,
+                   'nHal': CalculateHalogenNumber,
+                   'nHet': CalculateHeteroNumber,
+                   'nHA': CalculateHeavyAtomNumber,
+                   'nF': CalculateFluorinNumber,
+                   'nCl': CalculateChlorinNumber,
+                   'nBr': CalculateBromineNumber,
+                   'nI': CalculateIodineNumber,
+                   'nC': CalculateCarbonNumber,
+                   'nP': CalculatePhosphorNumber,
+                   'nS': CalculateOxygenNumber,
+                   'nO': CalculateOxygenNumber,
+                   'nN': CalculateNitrogenNumber,
+                   'nRing': CalculateRingNumber,
+                   'nRotB': CalculateRotationBondNumber,
+                   'nHBD': CalculateHdonorNumber,
+                   'nHBA': CalculateHacceptorNumber,
+                   'nSBond': CalculateSingleBondNumber,
+                   'nDBond': CalculateDoubleBondNumber,
+                   'nAroBond': CalculateAromaticBondNumber,
+                   'nTBond': CalculateTripleBondNumber,
+                   'nAtom': CalculateAllAtomNumber,
+                   'PathL1': CalculatePath1,
+                   'PathL2': CalculatePath2,
+                   'PathL3': CalculatePath3,
+                   'PathL4': CalculatePath4,
+                   'PathL5': CalculatePath5,
+                   'PathL6': CalculatePath6}
 
 
 def GetConstitutional(mol: Chem.Mol) -> dict:
