@@ -117,7 +117,17 @@ def CalculateTopoElectronic(ChargeCoordinates: List[List[float]]) -> float:
 
     :param ChargeCoordinates: Atomic coordinates and charges as read by pychem.GeoOpt._ReadCoordinates
     """
-    pass
+    temp, charges = [], []
+    for i in ChargeCoordinates:
+        temp.append([float(i[1]), float(i[2]), float(i[3])])
+        charges.append(float(i[4]))
+    nAT = len(ChargeCoordinates)
+    result = 0.0
+    for i in range(nAT - 1):
+        for j in range(i + 1, nAT):
+            dis = GetAtomDistance(temp[i], temp[j])
+            result += scipy.absolute(charges[i] * charges[j]) / scipy.power(dis, p=2)
+    return result
 
 
 def CalculateGravitational3D1(mol: pybel.Molecule, ChargeCoordinates: List[List[float]]) -> float:
@@ -140,15 +150,26 @@ def CalculateGravitational3D1(mol: pybel.Molecule, ChargeCoordinates: List[List[
     return round(float(result) / 100, 3)
 
 
-def CalculateGravitational3D2((mol: pybel.Molecule, ChargeCoordinates: List[List[float]]) -> float:
+def CalculateGravitational3D2(mol: pybel.Molecule, ChargeCoordinates: List[List[float]]) -> float:
     """Calculate Gravitational 3D index from bonded atoms.
 
     Katritzky, A.R. et al., J.Phys.Chem. 1996, 100, 10400-10407]
     :param mol: molecule
     :param ChargeCoordinates: Atomic coordinates and charges as read by pychem.GeoOpt._ReadCoordinates
     """
-    pass
-        
+    raise NotImplementedError('Needs modification: calculated only on bonded atoms.')
+    mol.removeh()
+    mol.addh()
+    temp = []
+    for i, j in enumerate(ChargeCoordinates):
+        temp.append([mol.atoms[i].atomicmass, [float(j[1]), float(j[2]), float(j[3])]])
+    nAT = len(temp)
+    result = 0.0
+    for i in range(nAT - 1):
+        for j in range(i + 1, nAT):
+            dis = GetAtomDistance(temp[i][1], temp[j][1])
+            result += temp[i][0] * temp[j][0] / scipy.power(dis, p=2)
+    return round(float(result) / 100, 3)
 
 
 def CalculateRadiusofGyration(mol: pybel.Molecule, ChargeCoordinates: List[List[float]]) -> float:
@@ -354,18 +375,19 @@ def CalculateMolecularEccentricity(mol: pybel.Molecule, ChargeCoordinates: List[
     return round(res, 3)
 
 
-def GetGeometric(mol: pybel.Molecule) -> dict:
+def GetGeometric(mol: pybel.Molecule, arc_file: str) -> dict:
     """Get all (20) geometrical descriptors.
 
     :param mol: the molecule
+    :param arc_file: Path to MOPAC .arc file
     """
-    filename = 'temp'
-    ChargeCoordinates = _ReadCoordinates(filename)
     res = {}
+    ChargeCoordinates = _ReadCoordinates(arc_file)
     res['W3DH'] = Calculate3DWienerWithH(ChargeCoordinates)
     res['W3D'] = Calculate3DWienerWithoutH(ChargeCoordinates)
     res['Petitj3D'] = CalculatePetitjean3DIndex(ChargeCoordinates)
-    res['GeDi'] = CalculateGemetricalDiameter(ChargeCoordinates)
+    res['GeDi'] = CalculateGeometricalDiameter(ChargeCoordinates)
+    res['TE'] = CalculateTopoElectronic(ChargeCoordinates)
     res['grav1'] = CalculateGravitational3D1(mol, ChargeCoordinates)
     # res['grav2'] = CalculateGravitational3D2(mol, ChargeCoordinates)
     res['rygr'] = CalculateRadiusofGyration(mol, ChargeCoordinates)

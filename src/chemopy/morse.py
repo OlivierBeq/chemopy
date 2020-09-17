@@ -7,17 +7,16 @@
 import math
 from typing import List
 
-import scipy
 from rdkit import Chem
 
 from pychem.AtomProperty import GetRelativeAtomicProperty
 from pychem.GeoOpt import _ReadCoordinates
 from pychem.utils import GetGeometricalDistanceMatrix, GetR
 
+# Parameter for RDF equation
 _beta = 100
 
 
-    
 def CalculateUnweightMoRSE(ChargeCoordinates: List[List[float]]) -> dict:
     """Calculate unweighted 3D MoRse descriptors.
 
@@ -183,68 +182,83 @@ def CalculateVDWVolumeMoRSE(ChargeCoordinates: List[List[float]]) -> dict:
     return RDFresult
 
 
+def GetMoRSEUnweighted(arc_file: str) -> dict:
+    """Get all unweighted 3D-Morse descriptors.
 
-def GetMoRSEUnweighted(mol: Chem.Mol) -> dict:
-    """Get all unweighted 3D-Morse descriptors."""
-    filename = 'temp'
-    ChargeCoordinates = _ReadCoordinates(filename) 
+    :param arc_file: Path to MOPAC .arc file
+    """
+    ChargeCoordinates = _ReadCoordinates(arc_file)
     result = CalculateUnweightMoRSE(ChargeCoordinates)
     return result
 
 
-def GetMoRSECharge(mol: Chem.Mol) -> dict:
-    """Get all 3D-Morse descriptors from charge schemes."""
-    filename = 'temp'
-    ChargeCoordinates = _ReadCoordinates(filename) 
+def GetMoRSECharge(arc_file: str) -> dict:
+    """Get all 3D-Morse descriptors from charge schemes.
+
+    :param arc_file: Path to MOPAC .arc file
+    """
+    ChargeCoordinates = _ReadCoordinates(arc_file)
     result = CalculateChargeMoRSE(ChargeCoordinates)
     return result
 
 
-def GetMoRSEMass(mol: Chem.Mol) -> dict:
-    """Get all 3D-Morse descriptors from on mass schemes."""
-    filename = 'temp'
-    ChargeCoordinates = _ReadCoordinates(filename) 
-    result=CalculateMassMoRSE(mol, ChargeCoordinates)
+def GetMoRSEMass(mol: Chem.Mol, arc_file: str) -> dict:
+    """Get all 3D-Morse descriptors from on mass schemes.
+
+    :param arc_file: Path to MOPAC .arc file
+    """
+    ChargeCoordinates = _ReadCoordinates(arc_file)
+    result = CalculateMassMoRSE(mol, ChargeCoordinates)
     return result
 
 
-def GetMoRSEAtomicNumber(mol: Chem.Mol) -> dict:
-    """Get all 3D-Morse descriptors from atomic number schemes."""
-    filename = 'temp'
-    ChargeCoordinates = _ReadCoordinates(filename) 
+def GetMoRSEAtomicNumber(mol: Chem.Mol, arc_file: str) -> dict:
+    """Get all 3D-Morse descriptors from atomic number schemes.
+
+    :param arc_file: Path to MOPAC .arc file
+    """
+    ChargeCoordinates = _ReadCoordinates(arc_file)
     result = CalculateAtomicNumberMoRSE(mol, ChargeCoordinates)
     return result
 
 
-def GetMoRSEPolarizability(mol: Chem.Mol) -> dict:
-    """Get all 3D-Morse descriptors from polarizability schemes."""
-    filename = 'temp'
-    ChargeCoordinates = _ReadCoordinates(filename) 
+def GetMoRSEPolarizability(arc_file: str) -> dict:
+    """Get all 3D-Morse descriptors from polarizability schemes.
+
+    :param arc_file: Path to MOPAC .arc file
+    """
+    ChargeCoordinates = _ReadCoordinates(arc_file)
     result = CalculatePolarizabilityMoRSE(ChargeCoordinates)
     return result
 
 
-def GetMoRSESandersonElectronegativity(mol: Chem.Mol) -> dict:
-    """Get all 3D-Morse descriptors from Sanderson Electronegativity schemes."""
-    filename = 'temp'
-    ChargeCoordinates = _ReadCoordinates(filename) 
+def GetMoRSESandersonElectronegativity(arc_file: str) -> dict:
+    """Get all 3D-Morse descriptors from Sanderson Electronegativity schemes.
+
+    :param arc_file: Path to MOPAC .arc file
+    """
+    ChargeCoordinates = _ReadCoordinates(arc_file)
     result = CalculateSandersonElectronegativityMoRSE(ChargeCoordinates)
     return result
 
 
-def GetMoRSEVDWVolume(mol: Chem.Mol) -> dict:
-    """Get all 3D-Morse descriptors from VDW Volume schemes."""
-    filename = 'temp'
-    ChargeCoordinates = _ReadCoordinates(filename) 
-    result=CalculateVDWVolumeMoRSE(ChargeCoordinates)
+def GetMoRSEVDWVolume(arc_file: str) -> dict:
+    """Get all 3D-Morse descriptors from VDW Volume schemes.
+
+    :param arc_file: Path to MOPAC .arc file
+    """
+    ChargeCoordinates = _ReadCoordinates(arc_file)
+    result = CalculateVDWVolumeMoRSE(ChargeCoordinates)
     return result
 
 
-def GetMoRSE(mol: Chem.Mol) -> dict:
-    """Get all (210) 3D-Morse descriptors with different (un)weighted schemes."""
+def GetMoRSE(mol: Chem.Mol, arc_file: str) -> dict:
+    """Get all (210) 3D-Morse descriptors with different (un)weighted schemes.
+
+    :param arc_file: Path to MOPAC .arc file
+    """
     result = {}
-    filename = 'temp'
-    ChargeCoordinates = _ReadCoordinates(filename)
+    ChargeCoordinates = _ReadCoordinates(arc_file)
     result.update(CalculateUnweightMoRSE(ChargeCoordinates))
     result.update(CalculateChargeMoRSE(ChargeCoordinates))
     result.update(CalculateMassMoRSE(mol, ChargeCoordinates))

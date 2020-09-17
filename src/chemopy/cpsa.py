@@ -4,29 +4,24 @@
 """Charged partial surface area (CPSA) descriptors."""
 
 from pychem import asa
-from openbabel import pybel
-from GeoOpt import GetAtomClassList, _ReadCoordinates
-
-filename='temp'
+from pychem.GeoOpt import GetAtomClassList, _ReadCoordinates
 
 
-def GetChargeSA(RadiusProbe=1.5, n_sphere_point=960):
+def GetChargeSA(arc_file, RadiusProbe=1.5, n_sphere_point=960):
     """Get atom symbol, charge and partial solvent-accessible surface areas for all atoms.
 
     :param arc_file: Path to MOPAC .arc file
     :param RadiusProbe: radius of the probe used to calculate SASA
     :param n_sphere_point: number of points per atom to calculate SASA
     """
-    ChargeCoordinates = _ReadCoordinates(filename)
-    atoms=GetAtomClassList(ChargeCoordinates)
-    FASA=asa.calculate_asa(atoms, RadiusProbe, n_sphere_point)
-    
-    res=[]
+    ChargeCoordinates = _ReadCoordinates(arc_file)
+    atoms = GetAtomClassList(ChargeCoordinates)
+    FASA = asa.calculate_asa(atoms, RadiusProbe, n_sphere_point)
+    res = []
     for i in range(len(FASA)):
-        res.append([ChargeCoordinates[i][0],ChargeCoordinates[i][4],FASA[i]])
-        
+        res.append([ChargeCoordinates[i][0], ChargeCoordinates[i][4], FASA[i]])
     return res
-        
+
 
 def CalculateASA(ChargeSA):
     """Calculate solvent-accessible surface area."""
@@ -41,13 +36,13 @@ def CalculateMSA(arc_file):
 
     :param arc_file: Path to MOPAC .arc file
     """
-    ChargeSA = GetChargeSA(RadiusProbe=0, n_sphere_point=960)
+    ChargeSA = GetChargeSA(arc_file, RadiusProbe=0, n_sphere_point=960)
     res = 0.0
     for i in ChargeSA:
-        res += i[2]
+        res = res + i[2]
     return res
-    
-    
+
+
 def CalculatePNSA1(ChargeSA):
     """Calculate partial negative area."""
     res = 0.0
@@ -235,7 +230,7 @@ def CalculateTPSA(ChargeSA):
     return res
 
 
-def CalculateFractionTATP(ChargeSA):
+def CalculateRatioTATP(ChargeSA):
     """Calculate ratio between TASA and TPSA (FrTATP)."""
     res = 0.0
     if CalculateTPSA(ChargeSA) == 0:
@@ -284,12 +279,15 @@ def CalculateRPCS(ChargeSA):
     return temp[charge.index(min(charge))] / RPCG
 
 
-def GetCPSA():
-    """Get all CPSA descriptors."""
-    ChargeSA = GetChargeSA(RadiusProbe=1.5, n_sphere_point=5000)
-    res={}
-    res['ASA'] = round(CalculateASA(ChargeSA), 3)
-    res['MSA'] = round(CalculateMSA(), 3)
+def GetCPSA(arc_file):
+    """Get all CPSA descriptors.
+
+    :param arc_file: Path to MOPAC .arc file
+    """
+    res = {}
+    ChargeSA = GetChargeSA(arc_file, RadiusProbe=1.5, n_sphere_point=5000)
+    res['SASA'] = round(CalculateASA(ChargeSA), 3)
+    res['MSA'] = round(CalculateMSA(arc_file), 3)
     res['PNSA1'] = round(CalculatePNSA1(ChargeSA), 3)
     res['PNSA2'] = round(CalculatePNSA2(ChargeSA), 3)
     res['PNSA3'] = round(CalculatePNSA3(ChargeSA), 3)
@@ -312,12 +310,12 @@ def GetCPSA():
     res['WPSA2'] = round(CalculateWPSA2(ChargeSA), 3)
     res['WPSA3'] = round(CalculateWPSA3(ChargeSA), 3)
     res['TASA'] = round(CalculateTASA(ChargeSA), 3)
-    res['PSA'] = round(CalculateTPSA(ChargeSA), 3)
+    res['TPSA'] = round(CalculateTPSA(ChargeSA), 3)
     res['RASA'] = round(CalculateRASA(ChargeSA), 3)
     res['RPSA'] = round(CalculateRPSA(ChargeSA), 3)
     res['RNCS'] = round(CalculateRNCS(ChargeSA), 3)
     res['RPCS'] = round(CalculateRPCS(ChargeSA), 3)
-    res['FrTATP'] = round(CalculateFractionTATP(ChargeSA), 3)
+    res['FrTATP'] = round(CalculateRatioTATP(ChargeSA), 3)
     return res
 
 

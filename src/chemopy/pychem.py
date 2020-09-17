@@ -202,7 +202,9 @@ class PyChem3D:
 
         :noindex:
         """
-        pass
+        self.MOPAC_verbose = False
+        self.MOPAC_version = '7.1'
+        self.MOPAC_method = 'PM3'
 
     def ReadMol(self, molstr: str = "", molformat: str = 'smi') -> None:
         """Read a molecular input string.
@@ -253,45 +255,122 @@ class PyChem3D:
         self.rdmol = getmol.GetMolFromDrugbank(dbid=ID)
         self.mol = pybel.readstring('sdf', Chem.MolToMolBlock(self.rdmol))
 
+    def SetMOPACParameters(self, version: str, method: str = None, verbose: bool = False) -> None:
+        """Set semi-empirical method and MOPAC version to be used.
+
+        Ir is not recommended to set a specific method but let defaults.
+        :param version: version of MOPAC
+        :param method: semi-empirical method
+        """
+        self.MOPAC_verbose = verbose
+        self.MOPAC_version = str(version)
+        self.MOPAC_method = method
+
     def GetGeometric(self) -> dict:
         """Calculate all 12 geometric descriptors."""
-        GetARCFile(self.mol)
-        res = geometric.GetGeometric(self.mol)
+        if self.MOPAC_method is not None:
+            res = GetARCFile(self.rdmol, method=self.MOPAC_method, version=self.MOPAC_version,
+                             verbose=False, exit_on_fail=False)
+        else:
+            res = GetARCFile(self.rdmol, verbose=False)
+        if res is None:
+            raise RuntimeError('Could not optimize molecule')
+        dir_, arc_file = res
+        res = geometric.GetGeometric(self.mol, arc_file)
+        Dispose(dir_)
         return res
 
     def GetMoRSE(self) -> dict:
         """Calculate all 210 3D MoRSE descriptors."""
-        GetARCFile(self.mol)
-        res = morse.GetMoRSE(self.mol)
+        if self.MOPAC_method is not None:
+            res = GetARCFile(self.rdmol, method=self.MOPAC_method, version=self.MOPAC_version,
+                             verbose=False, exit_on_fail=False)
+        else:
+            res = GetARCFile(self.rdmol, verbose=False)
+        if res is None:
+            raise RuntimeError('Could not optimize molecule')
+        dir_, arc_file = res
+        res = morse.GetMoRSE(self.mol, arc_file)
+        Dispose(dir_)
         return res
-    
+
     def GetRDF(self) -> dict:
         """Calculate all 180 3D RDF descriptors."""
-        GetARCFile(self.mol)
-        res = rdf.GetRDF(self.mol)
+        if self.MOPAC_method is not None:
+            res = GetARCFile(self.rdmol, method=self.MOPAC_method, version=self.MOPAC_version,
+                             verbose=False, exit_on_fail=False)
+        else:
+            res = GetARCFile(self.rdmol, verbose=False)
+        if res is None:
+            raise RuntimeError('Could not optimize molecule')
+        dir_, arc_file = res
+        res = rdf.GetRDF(self.mol, arc_file)
+        Dispose(dir_)
         return res
 
     def GetWHIM(self) -> dict:
         """Calculate all 70 WHIM descriptors."""
-        GetARCFile(self.mol)
-        res = whim.GetWHIM()
+        if self.MOPAC_method is not None:
+            res = GetARCFile(self.rdmol, method=self.MOPAC_method, version=self.MOPAC_version,
+                             verbose=False, exit_on_fail=False)
+        else:
+            res = GetARCFile(self.rdmol, verbose=False)
+        if res is None:
+            raise RuntimeError('Could not optimize molecule')
+        dir_, arc_file = res
+        res = whim.GetWHIM(arc_file)
+        Dispose(dir_)
         return res
 
     def GetCPSA(self) -> dict:
         """Calculate all 30 CPSA descriptors."""
-        GetARCFile(self.mol)
-        res = cpsa.GetCPSA()
+        if self.MOPAC_method is not None:
+            res = GetARCFile(self.rdmol, method=self.MOPAC_method, version=self.MOPAC_version,
+                             verbose=False, exit_on_fail=False)
+        else:
+            res = GetARCFile(self.rdmol, verbose=False)
+        if res is None:
+            raise RuntimeError('Could not optimize molecule')
+        dir_, arc_file = res
+        res = cpsa.GetCPSA(arc_file)
+        Dispose(dir_)
         return res
 
-    def GetAllDescriptor(self) -> dict:
-        """Calculate all 502 3D descriptors."""
+    def GetQuantumChemistry(self) -> dict:
+        """Calculate all 30 quantum chemistry descriptors."""
+        if self.MOPAC_method is not None:
+            res = GetARCFile(self.rdmol, method=self.MOPAC_method, version=self.MOPAC_version,
+                             verbose=False, exit_on_fail=False)
+        else:
+            res = GetARCFile(self.rdmol, verbose=False)
+        if res is None:
+            raise RuntimeError('Could not optimize molecule')
+        dir_, arc_file = res
+        res = quanchem.GetQuantumChemistry(arc_file)
+        Dispose(dir_)
+        return res
+
+    def GetAllDescriptors(self) -> dict:
+        """Calculate all 502 3D descriptors.
+
+        :param quanchem: whether to include quantum chemistry descriptors
+        """
+        if self.MOPAC_method is not None:
+            res = GetARCFile(self.rdmol, method=self.MOPAC_method, version=self.MOPAC_version,
+                             verbose=False, exit_on_fail=False)
+        else:
+            res = GetARCFile(self.rdmol, verbose=False)
+        if res is None:
+            raise RuntimeError('Could not optimize molecule')
+        dir_, arc_file = res
         res = {}
-        GetARCFile(self.mol)
-        res.update(cpsa.GetCPSA())
-        res.update(rdf.GetRDF(self.mol))
-        res.update(whim.GetWHIM())
-        res.update(morse.GetMoRSE(self.mol))
-        res.update(geometric.GetGeometric(self.mol))
+        res.update(cpsa.GetCPSA(arc_file))
+        res.update(rdf.GetRDF(self.mol, arc_file))
+        res.update(whim.GetWHIM(arc_file))
+        res.update(morse.GetMoRSE(self.mol, arc_file))
+        res.update(geometric.GetGeometric(self.mol, arc_file))
+        res.update(quanchem.GetQuantumChemistry(arc_file))
+        Dispose(dir_)
         return res
 
 

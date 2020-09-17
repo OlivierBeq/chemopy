@@ -5,13 +5,10 @@
 
 import math
 
-import scipy
-
 from pychem.AtomProperty import GetRelativeAtomicProperty
 from pychem.GeoOpt import _ReadCoordinates
 from pychem.utils import GetGeometricalDistanceMatrix, GetR
 
-# Parameter for RDF equation
 _beta = 100
 
 
@@ -145,59 +142,52 @@ def CalculateVDWVolumeRDF(ChargeCoordinates):
     return RDFresult
 
 
-def GetRDFUnweighed(mol):
+def GetRDFUnweighed(mol, arc_file):
     """Obtain all Unweighed RDF descriptors."""
-    filename = 'temp'
-    ChargeCoordinates = _ReadCoordinates(filename) 
+    ChargeCoordinates = _ReadCoordinates(arc_file)
     result = CalculateUnweightRDF(ChargeCoordinates)
     return result
 
 
-def GetRDFCharge(mol):
+def GetRDFCharge(mol, arc_file):
     """Obtain all RDF descriptors with Charge schemes."""
-    filename = 'temp'
-    ChargeCoordinates = _ReadCoordinates(filename) 
+    ChargeCoordinates = _ReadCoordinates(arc_file)
     result = CalculateChargeRDF(ChargeCoordinates)
     return result
 
 
-def GetRDFMass(mol):
+def GetRDFMass(mol, arc_file):
     """Obtain all RDF descriptors with Mass schemes."""
-    filename = 'temp'
-    ChargeCoordinates = _ReadCoordinates(filename) 
-    result = CalculateMassRDF(mol,ChargeCoordinates)
+    ChargeCoordinates = _ReadCoordinates(arc_file)
+    result = CalculateMassRDF(mol, ChargeCoordinates)
     return result
 
 
-def GetRDFPolarizability(mol):
+def GetRDFPolarizability(mol, arc_file):
     """Obtain all RDF descriptors with Polarizability schemes."""
-    filename = 'temp'
-    ChargeCoordinates = _ReadCoordinates(filename) 
+    ChargeCoordinates = _ReadCoordinates(arc_file)
     result = CalculatePolarizabilityRDF(ChargeCoordinates)
     return result
 
 
-def GetRDFSandersonElectronegativity(mol):
+def GetRDFSandersonElectronegativity(mol, arc_file):
     """Obtain all RDF descriptors with Sanderson Electronegativity schemes."""
-    filename = 'temp'
-    ChargeCoordinates = _ReadCoordinates(filename) 
+    ChargeCoordinates = _ReadCoordinates(arc_file)
     result = CalculateSandersonElectronegativityRDF(ChargeCoordinates)
     return result
 
 
-def GetRDFVDWVolume(mol):
+def GetRDFVDWVolume(mol, arc_file):
     """Obtain all RDF descriptors with VDW Volume schemes."""
-    filename = 'temp'
-    ChargeCoordinates = _ReadCoordinates(filename) 
+    ChargeCoordinates = _ReadCoordinates(arc_file)
     result = CalculateVDWVolumeRDF(ChargeCoordinates)
     return result
 
 
-def GetRDF(mol):
+def GetRDF(mol, arc_file):
     """Obtain all (180) RDF descriptors with different (un)weighted schemes."""
     result = {}
-    filename = 'temp'
-    ChargeCoordinates = _ReadCoordinates(filename)
+    ChargeCoordinates = _ReadCoordinates(arc_file)
     result.update(CalculateUnweightRDF(ChargeCoordinates))
     result.update(CalculateChargeRDF(ChargeCoordinates))
     result.update(CalculateMassRDF(mol, ChargeCoordinates))
