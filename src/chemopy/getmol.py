@@ -3,10 +3,10 @@
 
 """Molecule format parsers."""
 
-import os
 import re
 import urllib.request
 
+import defusedxml.ElementTree as ET
 from openbabel import pybel
 from rdkit import Chem
 
@@ -65,9 +65,28 @@ def GetMolFromCAS(casid: str = "") -> Chem.Mol:
     return m
 
 
-def GetMolFromEBI():
+def GetMolFromEBI(chid: str = "") -> Chem.Mol:
     """Donwload molecule from ChEBI or ChEMBL using ChEBI or ChEMBL id."""
-    pass
+    chid = chid.strip().upper()
+    if chid.startswith('CHEBI'):
+        request = urllib.request.Request(f'https://www.ebi.ac.uk/chebi/saveStructure.do?sdf=true&chebiId={chid}')
+        with urllib.request.urlopen(request) as response:
+            sdf = response.read()
+        if not len(sdf):
+            raise Exception(f'Not a valid ChEBI ID: {chid}')
+    elif chid.startswith('CHEMBL'):
+        request = urllib.request.Request(f'https://www.ebi.ac.uk/chembl/api/data/molecule?chembl_id={chid}')
+        with urllib.request.urlopen(request) as response:
+            xml = response.read()
+        xml_tree = ET.fromstring(xml)
+        structure = xml_tree.findall('./molecules/molecule/molecule_structures/molfile')
+        if not len(structure):
+            raise Exception(f'Not a valid ChEMBL ID: {chid}')
+        sdf = structure[0].text
+    else:
+        raise Exception('Valid ID starts with CHEBI: or CHEMBL')
+    m = Chem.MolFromMolBlock(sdf)
+    return m
 
 
 def GetMolFromNCBI(cid: str = "") -> Chem.Mol:
