@@ -118,7 +118,7 @@ def CalculatePetitjean(mol: Chem.Mol) -> float:
     """
     diameter = CalculateDiameter(mol)
     radius = CalculateRadius(mol)
-    return 1 - radius / float(diameter)
+    return (float(diameter) - radius) / radius
 
 
 def CalculateXuIndex(mol: Chem.Mol) -> float:
@@ -438,7 +438,7 @@ def CalculateVertexEqualityTotalInf(mol: Chem.Mol) -> float:
     return n * numpy.log2(n) - res
 
 
-def _HKDeltas(mol: Chem.Mol, skipHs: bool = True) -> List[float]:
+def _HallKierDeltas(mol: Chem.Mol, skipHs: bool = True) -> List[float]:
     """Calculate Kier & Hall valence delta-values for molecular connectivity.
 
     From Kier L. and Hall L., J. Pharm. Sci. (1983), 72(10),1170-1173.
@@ -468,7 +468,7 @@ def CalculateSimpleTopovIndex(mol: Chem.Mol) -> float:
     Kier and Hall's valence delta-values are used in place of atom degrees.
     From Kier L. and Hall L., J. Pharm. Sci. (1983), 72(10),1170-1173.
     """
-    deltas = _HKDeltas(mol, skipHs=0)
+    deltas = _HallKierDeltas(mol, skipHs=0)
     while 0 in deltas:
         deltas.remove(0)
     deltas = numpy.array(deltas, 'd')
@@ -485,7 +485,7 @@ def CalculateHarmonicTopovIndex(mol: Chem.Mol) -> float:
     Kier and Hall's valence delta-values are used in place of atom degrees.
     From Kier L. and Hall L., J. Pharm. Sci. (1983), 72(10),1170-1173.
     """
-    deltas = _HKDeltas(mol, skipHs=0)
+    deltas = _HallKierDeltas(mol, skipHs=0)
     while 0 in deltas:
         deltas.remove(0)
     deltas = numpy.array(deltas, 'd')
@@ -504,7 +504,7 @@ def CalculateGeometricTopovIndex(mol: Chem.Mol) -> float:
     From Kier L. and Hall L., J. Pharm. Sci. (1983), 72(10),1170-1173.
     """
     nAtoms = mol.GetNumAtoms()
-    deltas = _HKDeltas(mol, skipHs=0)
+    deltas = _HallKierDeltas(mol, skipHs=0)
     while 0 in deltas:
         deltas.remove(0)
     deltas = numpy.array(deltas, 'd')
@@ -537,7 +537,7 @@ def CalculateGutmanVTopo(mol: Chem.Mol) -> float:
     From Gutman,I. J. Chem. Inf. Comput. Sci., (1994), 34,1037-1039.
     """
     nAT = mol.GetNumAtoms()
-    deltas = _HKDeltas(mol)
+    deltas = _HallKierDeltas(mol)
     Distance = Chem.GetDistanceMatrix(mol)
     res = 0.0
     for i in range(nAT):
