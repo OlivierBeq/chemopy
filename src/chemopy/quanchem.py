@@ -32,25 +32,42 @@ def _GetMin(x: float) -> float:
 
 def ReadFile(filename: str) -> dict:
     """Read basic quantum chemistry descriptors from the .arc file."""
-    
     inputdict = {}
-    f = file(filename, 'r')
+    f = open(filename, 'r')
     for line in f.readlines():
-        if line[10:27] == "HEAT OF FORMATION":
-            inputdict['Hf'] = float(line[-18:-6]) / 96.4853 ##1ev=96.4853kj/mol
-        if line[10:22] == "TOTAL ENERGY":
-            inputdict['ET'] = float(line[-16:-4])
-        if line[10:16] == "DIPOLE":
-            inputdict['mu'] = float(line[-16:-7])
-        if line[10:28] == "HOMO LUMO ENERGIES":
-            inputdict['EHomo'] = float(line[-7:-1])
-            inputdict['ELumo'] = float(line[-19:-8])
-        #if line[10:26]=="MOLECULAR WEIGHT":
-        #    inputdict['Mw']=float(line[-12:-1])
-        #if line[10:20]=="COSMO AREA":
-        #    inputdict['CoArea']=float(line[-24:-17])
-        #if line[10:22]=="COSMO VOLUME":
-        #    inputdict['CoVolume']=float(line[-24:-17])
+        value = line[10:34].strip()
+        if value == "HEAT OF FORMATION":
+            # 1ev = 96.4853 kj/mol
+            inputdict['Hf'] = float(line.strip().upper().split('=')[-1].upper().strip('KJ/MOL')) / 96.4853
+        if value == "TOTAL ENERGY":
+            inputdict['ET'] = float(line.strip().upper().split('=')[1].upper().strip('EV'))
+        if value == "DIPOLE":
+            inputdict['mu'] = float(line.strip().upper().split('=')[1].split('DEBYE')[0])
+        if value.startswith("HOMO LUMO ENERGIES"):
+            inputdict['EHomo'] = float(line.split('=')[1].strip().split()[0])
+            inputdict['ELumo'] = float(line.split('=')[1].strip().split()[1])
+        elif value.startswith("HOMO (SOMO) LUMO"):
+            data = line.split('=')[1].strip().translate(str.maketrans('', '', '()')).split()
+            data = list(filter(None, data))
+            inputdict['EHomo'] = float(data[0])
+            inputdict['ESomo'] = float(data[1])
+            inputdict['ELumo'] = float(data[2])
+        elif value.startswith("ALPHA SOMO LUMO"):
+            data = line.split('=')[1].strip().translate(str.maketrans('', '', '()')).split()
+            data = list(filter(None, data))
+            inputdict['EaSomo'] = float(data[0])
+            inputdict['EaLumo'] = float(data[1])
+        elif value.startswith("BETA  SOMO LUMO"):
+            data = line.split('=')[1].strip().translate(str.maketrans('', '', '()')).split()
+            data = list(filter(None, data))
+            inputdict['EbSomo'] = float(data[0])
+            inputdict['EbLumo'] = float(data[1])
+        if line[10:26] == "MOLECULAR WEIGHT":
+            inputdict['Mw'] = float(line[-12:-1])
+        elif value == "COSMO AREA":
+            inputdict['CoArea'] = float(line.split('=')[1].strip().split()[0])
+        elif value == "COSMO VOLUME":
+            inputdict['CoVolume'] = float(line.split('=')[1].strip().split()[0])
     f.close()
     return inputdict
 
@@ -75,7 +92,12 @@ def _ReadCharge(arc_file: str) -> List[Tuple[str, float]]:
     return Charge
 
 
-res = {}
+def GetChargeDescriptors(arc_file: str) -> dict:
+    """Calculate charge descriptors.
+
+    :param arc_file: Path to MOPAC .arc file
+    """
+    res = {}
     Htemp = []
     Ctemp = []
     Ntemp = []
@@ -123,30 +145,34 @@ def CalculateBasicQC(inputdict: dict) -> dict:
 
     Derived from Lumo, Homo, dipole moment, enthalpy and the total energy.
     """
-    ##converting the unit into suitable one
-    EHomo = inputdict['EHomo']
-    ELumo = inputdict['ELumo']
+    if 'EHomo' in inputdict.keys():
+        EHomo = inputdict['EHomo']
+    else:
+        EHomo = inputdict['EaSomo']
+    if 'ELumo' in inputdict.keys():
+        ELumo = inputdict['ELumo']
+    else:
+        ELumo = inputdict['EaLumo']
+    dict_ = {}
+    dict_.update(inputdict)
+    dict_['GAP'] = ELumo - EHomo
+    dict_['S'] = 2. / (ELumo - EHomo)
+    dict_['eta'] = (ELumo - EHomo) / 2.0
+    dict_['fHL'] = EHomo / ELumo
+    dict_['IP'] = -EHomo
+    dict_['EA'] = -ELumo
+    dict_['xmu'] = (-ELumo - EHomo) / 2.0
+    return dict_
 
-    
-    dict = {}
-    dict.update(inputdict)
-    dict['GAP'] = ELumo-EHomo
-    dict['S'] = 2. / (ELumo-EHomo)
-    dict['eta'] = (ELumo -EHomo) / 2.0
-    dict['fHL'] = EHomo / ELumo
-    dict['IP'] = -EHomo
-    dict['EA'] = -ELumo
-    dict['xmu'] = (-ELumo - EHomo) / 2.0
-    return dict
 
+def GetQuantumChemistry(arc_file: str) -> dict:
+    """Get all quantum chemistry descriptors.
 
-def GetQuantumChemistry():
-    """Get all quantum chemistry descriptors."""
-    filename = 'temp'
-    inputdict = ReadFile(filename)
-    # res = CalculateBasicQC(inputdict)
-    res = {}
-    res.update(GetChargeDescriptors(filename))
+    :param arc_file: Path to MOPAC .arc file
+    """
+    inputdict = ReadFile(arc_file)
+    res = CalculateBasicQC(inputdict)
+    res.update(GetChargeDescriptors(arc_file))
     return res
 
 
