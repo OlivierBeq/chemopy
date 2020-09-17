@@ -1,718 +1,261 @@
 # -*- coding: utf-8 -*-
-"""
-##############################################################################
-The calculation of molecular constitutional indices based on its topological
 
-structure. You can get 30 molecular connectivity descriptors. You can freely
 
-use and distribute it. If you hava  any problem, you could contact with us timely!
-
-Authors: Dongsheng Cao and Yizeng Liang.
-
-Date: 2012.09.18
-
-Email: oriental-cds@163.com
-##############################################################################
-"""
+"""Molecular constitutional and topological indices."""
 
 from rdkit import Chem
-#from rdkit.Chem import rdchem
 from rdkit.Chem import Lipinski as LPK
 
-#import math
-
-Version=1.0
-#############################################################
 
 def CalculateMolWeight(mol):
-    
-    """
-    #################################################################
-    Calculation of molecular weight
-    
-    Note that not including H
-    
-    ---->Weight  
-    
-    Usage:
-        
-        result=CalculateMolWeight(mol)
-        
-        Input: mol is a molecule object.
-        
-        Output: result is a numeric value.
-        
-    #################################################################
-    """
-    MolWeight=0
+    """Calculate molecular weight of heavy atoms."""
+    MolWeight = 0
     for atom in mol.GetAtoms():
-        MolWeight=MolWeight+atom.GetMass()
+        if atom.GetAtomicNum() != 1:
+            MolWeight += atom.GetMass()
+    return MolWeight
 
     return MolWeight
 
 
-def CalculateAverageMolWeight(mol):
-    """
-    #################################################################
-    Calcualtion of average molecular weight
-    
-    Note that not including H
-    
-    ---->AWeight
-    
-    Usage:
-        
-        result=CalculateAverageMolWeight(mol)
-        
-        Input: mol is a molecule object.
-        
-        Output: result is a numeric value.
-    #################################################################
-    """
-    
-    MolWeight=0
+def CalculateAverageMolWeight(mol: Chem.Mol) -> float:
+    """Calculate average molecular weight of heavy atoms."""
+    MolWeight = 0
     for atom in mol.GetAtoms():
-        MolWeight=MolWeight+atom.GetMass()
+        MolWeight += atom.GetMass()
+    return MolWeight / mol.GetNumAtoms()
 
-    return MolWeight/mol.GetNumAtoms()
 
-
-def CalculateHydrogenNumber(mol):
-
-    """
-    #################################################################
-    Calculation of Number of Hydrogen in a molecule
-    
-    ---->nhyd
-    
-    Usage:
-        
-        result=CalculateHydrogenNumber(mol)
-        
-        Input: mol is a molecule object.
-        
-        Output: result is a numeric value.
-    #################################################################
-    """
-    i=0
-    Hmol=Chem.AddHs(mol)
+def CalculateHydrogenNumber(mol: Chem.Mol) -> float:
+    """Calculate number of Hydrogens."""
+    i = 0
+    Hmol = Chem.AddHs(mol)
     for atom in Hmol.GetAtoms():
-        if atom.GetAtomicNum()==1:
-            i=i+1
-            
-    return i
-
-def CalculateHalogenNumber(mol):
-
-    """
-    #################################################################
-    Calculation of Halogen counts in a molecule
-    
-    ---->nhal
-    
-    Usage:
-        
-        result=CalculateHalogenNumber(mol)
-        
-        Input: mol is a molecule object.
-        
-        Output: result is a numeric value.
-    #################################################################
-    """
-    i=0
-    for atom in mol.GetAtoms():
-        if atom.GetAtomicNum()==9 or atom.GetAtomicNum()==17 or atom.GetAtomicNum()==35 or atom.GetAtomicNum()==53:
-            i=i+1
-    return i
-            
-
-
-def CalculateHeteroNumber(mol):
-    """
-    #################################################################
-    Calculation of Hetero counts in a molecule
-    
-    ---->nhet
-    
-    Usage:
-        
-        result=CalculateHeteroNumber(mol)
-        
-        Input: mol is a molecule object.
-        
-        Output: result is a numeric value.
-    #################################################################
-    """
-    i=0
-    for atom in mol.GetAtoms():
-        if atom.GetAtomicNum()==6 or atom.GetAtomicNum()==1:
-            i=i+1
-
-    return mol.GetNumAtoms()-i
-
-
-
-def CalculateHeavyAtomNumber(mol):
-    """
-    #################################################################
-    Calculation of Heavy atom counts in a molecule
-    
-    ---->nhev
-    
-    Usage:
-        
-        result=CalculateHeavyAtomNumber(mol)
-        
-        Input: mol is a molecule object.
-        
-        Output: result is a numeric value.
-    #################################################################
-    """
-    return mol.GetNumAtoms(onlyHeavy=1)
-
-
-def _CalculateElementNumber(mol,AtomicNumber=6):
-
-    """
-    #################################################################
-    **Internal used only**
-    
-    Calculation of element counts with atomic number equal to n in a molecule
-    #################################################################
-    """
-    i=0
-    for atom in mol.GetAtoms():
-        if atom.GetAtomicNum()==AtomicNumber:
-            i=i+1
-            
+        if atom.GetAtomicNum() == 1:
+            i += 1
     return i
 
 
-def CalculateFluorinNumber(mol):
-
-    """
-    #################################################################
-    Calculation of Fluorin counts in a molecule
-    
-    ---->ncof
-    
-    Usage:
-        
-        result=CalculateFluorinNumber(mol)
-        
-        Input: mol is a molecule object.
-        
-        Output: result is a numeric value.
-    #################################################################
-    """
-            
-    return _CalculateElementNumber(mol,AtomicNumber=9)
+def CalculateHalogenNumber(mol: Chem.Mol) -> float:
+    """Calculate number of Halogens."""
+    i = 0
+    for atom in mol.GetAtoms():
+        if atom.GetAtomicNum() in [9, 17, 35, 53]:
+            i += 1
+    return i
 
 
-def CalculateChlorinNumber(mol):
-
-    """
-    #################################################################
-    Calculation of Chlorin counts in a molecule
-    
-    ---->ncocl
-    
-    Usage:
-        
-        result=CalculateChlorinNumber(mol)
-        
-        Input: mol is a molecule object.
-        
-        Output: result is a numeric value.
-    #################################################################
-    """
-
-    return _CalculateElementNumber(mol,AtomicNumber=17)
+def CalculateHeteroNumber(mol: Chem.Mol) -> float:
+    """Calculate number of Heteroatoms."""
+    i = 0
+    for atom in mol.GetAtoms():
+        if atom.GetAtomicNum() not in [1, 6]:
+            i += 1
+    return mol.GetNumAtoms() - i
 
 
-def CalculateBromineNumber(mol):
-
-    """
-    #################################################################
-    Calculation of Bromine counts in a molecule
-    
-    ---->ncobr
-    
-    Usage:
-        
-        result=CalculateBromineNumber(mol)
-        
-        Input: mol is a molecule object.
-        
-        Output: result is a numeric value.
-    #################################################################
-    """
-
-    return _CalculateElementNumber(mol,AtomicNumber=35)
-
-def CalculateIodineNumber(mol):
-    """
-    #################################################################
-    Calculation of Iodine counts in a molecule
-    
-    ---->ncoi
-    
-    Usage:
-        
-        result=CalculateIodineNumber(mol)
-        
-        Input: mol is a molecule object.
-        
-        Output: result is a numeric value.
-    #################################################################
-    """
-
-    return _CalculateElementNumber(mol,AtomicNumber=53)
+def CalculateHeavyAtomNumber(mol: Chem.Mol) -> float:
+    """Calculate number of Heavy atoms."""
+    return mol.GetNumHeavyAtoms()
 
 
-def CalculateCarbonNumber(mol):
-
-    """
-    #################################################################
-    Calculation of Carbon number in a molecule
-    
-    ---->ncarb
-    
-    Usage:
-        
-        result=CalculateCarbonNumber(mol)
-        
-        Input: mol is a molecule object.
-        
-        Output: result is a numeric value.
-    #################################################################
-    """
-
-    return _CalculateElementNumber(mol,AtomicNumber=6)
-
-def CalculatePhosphorNumber(mol):
-    """
-    #################################################################
-    Calcualtion of Phosphor number in a molecule
-    
-    ---->nphos
-    
-    Usage:
-        
-        result=CalculatePhosphorNumber(mol)
-        
-        Input: mol is a molecule object.
-        
-        Output: result is a numeric value.
-    #################################################################
-    """
-    return _CalculateElementNumber(mol,AtomicNumber=15)
+def _CalculateElementNumber(mol: Chem.Mol, AtomicNumber=6) -> float:
+    """Calculate number of atoms with specified element."""
+    i = 0
+    for atom in mol.GetAtoms():
+        if atom.GetAtomicNum() == AtomicNumber:
+            i += 1
+    return i
 
 
-def CalculateSulfurNumber(mol):
-    """
-    #################################################################
-    Calculation of Sulfur counts in a molecule
-    
-    ---->nsulph
-    
-    Usage:
-        
-        result=CalculateSulfurNumber(mol)
-        
-        Input: mol is a molecule object.
-        
-        Output: result is a numeric value.
-    #################################################################
-    """
-    return _CalculateElementNumber(mol,AtomicNumber=16)
+def CalculateFluorinNumber(mol: Chem.Mol) -> float:
+    """Calculate number of Fluorine atoms."""
+    return _CalculateElementNumber(mol, AtomicNumber=9)
 
 
-
-def CalculateOxygenNumber(mol):
-    """
-    #################################################################
-    Calculation of Oxygen counts in a molecule
-    
-    ---->noxy
-    
-    Usage:
-        
-        result=CalculateOxygenNumber(mol)
-        
-        Input: mol is a molecule object.
-        
-        Output: result is a numeric value.
-    #################################################################
-
-    """
-    return _CalculateElementNumber(mol,AtomicNumber=8)
-        
+def CalculateChlorinNumber(mol: Chem.Mol) -> float:
+    """Calculate number of Fluorine atoms."""
+    return _CalculateElementNumber(mol, AtomicNumber=17)
 
 
-def CalculateNitrogenNumber(mol):
-    """
-    #################################################################
-    Calculation of Nitrogen counts in a molecule
-    
-    ---->nnitro
-    
-    Usage:
-        
-        result=CalculateNitrogenNumber(mol)
-        
-        Input: mol is a molecule object.
-        
-        Output: result is a numeric value.
-    #################################################################
-    """
-    
-    return _CalculateElementNumber(mol,AtomicNumber=7)
+def CalculateBromineNumber(mol: Chem.Mol) -> float:
+    """Calculate number of Bromine atoms."""
+    return _CalculateElementNumber(mol, AtomicNumber=35)
 
 
-def CalculateRingNumber(mol):
-    """
-    #################################################################
-    Calculation of ring counts in a molecule
-    
-    ---->nring
-    
-    Usage:
-        
-        result=CalculateRingNumber(mol)
-        
-        Input: mol is a molecule object.
-        
-        Output: result is a numeric value.
-    #################################################################
-    """
+def CalculateIodineNumber(mol: Chem.Mol) -> float:
+    """Calculate number of Iodine atoms."""
+    return _CalculateElementNumber(mol, AtomicNumber=53)
+
+
+def CalculateCarbonNumber(mol: Chem.Mol) -> float:
+    """Calculate number of Carbon atoms."""
+    return _CalculateElementNumber(mol, AtomicNumber=6)
+
+
+def CalculatePhosphorNumber(mol: Chem.Mol) -> float:
+    """Calcualtion number of Phosphor atoms."""
+    return _CalculateElementNumber(mol, AtomicNumber=15)
+
+
+def CalculateSulfurNumber(mol: Chem.Mol) -> float:
+    """Calculate number of Sulfur atoms."""
+    return _CalculateElementNumber(mol, AtomicNumber=16)
+
+
+def CalculateOxygenNumber(mol: Chem.Mol) -> float:
+    """Calculate number of Oxygen atoms."""
+    return _CalculateElementNumber(mol, AtomicNumber=8)
+
+
+def CalculateNitrogenNumber(mol: Chem.Mol) -> float:
+    """Calculate number of Nitrogen atoms."""
+    return _CalculateElementNumber(mol, AtomicNumber=7)
+
+
+def CalculateRingNumber(mol: Chem.Mol) -> float:
+    """Calculate number of rings."""
     return Chem.GetSSSR(mol)
 
 
-def CalculateRotationBondNumber(mol):
-    """
-    #################################################################
-    Calculation of rotation bonds counts in a molecule
-    
-    ---->nrot
-    
-    Note that this is the same as calculation of single bond
-    
-    counts in a molecule.
-    
-    Usage:
-        
-        result=CalculateRotationBondNumber(mol)
-        
-        Input: mol is a molecule object.
-        
-        Output: result is a numeric value.
-    #################################################################
-    """
+def CalculateRotationBondNumber(mol: Chem.Mol) -> float:
+    """Calculate number of rotatable bonds."""
     return LPK.NumRotatableBonds(mol)
 
 
-def CalculateHdonorNumber(mol):
-    """
-    #################################################################
-    Calculation of Hydrongen bond donor counts in a molecule
-    
-    ---->ndonr
-    
-    Usage:
-        
-        result=CalculateHdonorNumber(mol)
-        
-        Input: mol is a molecule object.
-        
-        Output: result is a numeric value.
-    #################################################################
-    """
+def CalculateHdonorNumber(mol: Chem.Mol) -> float:
+    """Calculate number of Hydrongen bond donors."""
     return LPK.NumHDonors(mol)
 
 
-
-def CalculateHacceptorNumber(mol):
-    """
-    #################################################################
-    Calculation of Hydrogen bond acceptor counts in a molecule
-    
-    ---->naccr
-    
-    Usage:
-        
-        result=CalculateHacceptorNumber(mol)
-        
-        Input: mol is a molecule object.
-        
-        Output: result is a numeric value.
-    #################################################################
-    """
+def CalculateHacceptorNumber(mol: Chem.Mol) -> float:
+    """Calculate number of Hydrogen bond acceptors."""
     return LPK.NumHAcceptors(mol)
 
 
-def CalculateSingleBondNumber(mol):
-
-    """
-    #################################################################
-    Calculation of single bond counts in a molecule
-    
-    ---->nsb
-    
-    Usage:
-        
-        result=CalculateSingleBondNumber(mol)
-        
-        Input: mol is a molecule object.
-        
-        Output: result is a numeric value.
-    #################################################################
-    """
-    i=0;
+def CalculateSingleBondNumber(mol: Chem.Mol) -> float:
+    """Calculate number of single bonds."""
+    i = 0
     for bond in mol.GetBonds():
-
-        if bond.GetBondType().name=='SINGLE':
-            i=i+1
-            
+        if bond.GetBondType().name == 'SINGLE':
+            i += 1
     return i
-            
 
-def CalculateDoubleBondNumber(mol):
 
-    """
-    #################################################################
-    Calculation of double bond counts in a molecule
-    
-    ---->ndb
-    
-    Usage:
-        
-        result=CalculateDoubleBondNumber(mol)
-        
-        Input: mol is a molecule object.
-        
-        Output: result is a numeric value.
-    #################################################################
-    """
-    i=0;
+def CalculateDoubleBondNumber(mol: Chem.Mol) -> float:
+    """Calculate number of double bonds."""
+    i = 0
     for bond in mol.GetBonds():
-
-        if bond.GetBondType().name=='DOUBLE':
-            i=i+1
-            
+        if bond.GetBondType().name == 'DOUBLE':
+            i += 1
     return i
-            
-        
 
-def CalculateTripleBondNumber(mol):
 
-    """
-    #################################################################
-    Calculation of triple bond counts in a molecule
-    
-    ---->ntb
-    
-    Usage:
-        
-        result=CalculateTripleBondNumber(mol)
-        
-        Input: mol is a molecule object.
-        
-        Output: result is a numeric value.
-    #################################################################
-    """
-    i=0;
+def CalculateTripleBondNumber(mol: Chem.Mol) -> float:
+    """Calculate number of triple bonds."""
+    i = 0
     for bond in mol.GetBonds():
-
-        if bond.GetBondType().name=='TRIPLE':
-            i=i+1
-            
+        if bond.GetBondType().name == 'TRIPLE':
+            i += 1
     return i
-            
-def CalculateAromaticBondNumber(mol):
 
-    """
-    #################################################################
-    Calculation of aromatic bond counts in a molecule
-    
-    ---->naro
-    
-    Usage:
-        
-        result=CalculateAromaticBondNumber(mol)
-        
-        Input: mol is a molecule object.
-        
-        Output: result is a numeric value.
-    #################################################################
-    """
-    i=0;
+
+def CalculateAromaticBondNumber(mol: Chem.Mol) -> float:
+    """Calculate number of aromatic bonds."""
+    i = 0
     for bond in mol.GetBonds():
-
-        if bond.GetBondType().name=='AROMATIC':
-            i=i+1
-            
+        if bond.GetBondType().name == 'AROMATIC':
+            i += 1
     return i
-    
-def CalculateAllAtomNumber(mol):
-    """
-    #################################################################
-    Calculation of all atom counts in a molecule
-    
-    ---->nta
-    
-    Usage:
-        
-        result=CalculateAllAtomNumber(mol)
-        
-        Input: mol is a molecule object.
-        
-        Output: result is a numeric value.
-    #################################################################
-    """
-    
+
+
+def CalculateAllAtomNumber(mol: Chem.Mol) -> float:
+    """Calculate number of all atoms."""
     return Chem.AddHs(mol).GetNumAtoms()
-        
-def _CalculatePathN(mol,PathLength=2):
-    """
-    #################################################################
-    *Internal Use Only*
-    
-    Calculation of the counts of path length N for a molecule
-    
-    ---->PC1-PC6
-    
-    Usage:
-        
-        result=CalculateMolWeight(mol)
-        
-        Input: mol is a molecule object.
-        
-        Output: result is a numeric value.
-    #################################################################
-    """
-    return len(Chem.FindAllPathsOfLengthN(mol,PathLength,useBonds=1))
-
-def CalculatePath1(mol):
-    """
-    #################################################################
-    Calculation of the counts of path length 1 for a molecule
-    #################################################################
-    """
-    return _CalculatePathN(mol,1)
-
-def CalculatePath2(mol):
-    """
-    #################################################################
-    Calculation of the counts of path length 2 for a molecule
-    #################################################################
-    """
-    return _CalculatePathN(mol,2)
-
-def CalculatePath3(mol):
-    """
-    #################################################################
-    Calculation of the counts of path length 3 for a molecule
-    #################################################################
-    """
-    return _CalculatePathN(mol,3)
-
-def CalculatePath4(mol):
-    """
-    #################################################################
-    Calculation of the counts of path length 4 for a molecule
-    #################################################################
-    """
-    return _CalculatePathN(mol,4)
-
-def CalculatePath5(mol):
-    """
-    #################################################################
-    Calculation of the counts of path length 5 for a molecule
-    #################################################################
-    """
-    return _CalculatePathN(mol,5)
-
-def CalculatePath6(mol):
-    """
-    #################################################################
-    Calculation of the counts of path length 6 for a molecule
-    #################################################################
-    """
-    return _CalculatePathN(mol,6)
 
 
-_constitutional={'Weight':CalculateMolWeight,
-                'AWeight':CalculateAverageMolWeight,
-                'nhyd':CalculateHydrogenNumber,
-                'nhal':CalculateHalogenNumber,
-                'nhet':CalculateHeteroNumber,
-                'nhev':CalculateHeavyAtomNumber,
-                'ncof':CalculateFluorinNumber,
-                'ncocl':CalculateChlorinNumber,
-                'ncobr':CalculateBromineNumber,
-                'ncoi':CalculateIodineNumber,
-                'ncarb':CalculateCarbonNumber,
-                'nphos':CalculatePhosphorNumber,
-                'nsulph':CalculateOxygenNumber,
-                'noxy':CalculateOxygenNumber,
-                'nnitro':CalculateNitrogenNumber,
-                'nring':CalculateRingNumber,
-                'nrot':CalculateRotationBondNumber,
-                'ndonr':CalculateHdonorNumber,
-                'naccr':CalculateHacceptorNumber,
-                'nsb':CalculateSingleBondNumber,
-                'ndb':CalculateDoubleBondNumber,
-                'naro':CalculateAromaticBondNumber,
-                'ntb':CalculateTripleBondNumber,
-                'nta':CalculateAllAtomNumber,
-                'PC1':CalculatePath1,
-                'PC2':CalculatePath2,
-                'PC3':CalculatePath3,
-                'PC4':CalculatePath4,
-                'PC5':CalculatePath5,
-                'PC6':CalculatePath6
-    }
+def _CalculatePathN(mol: Chem.Mol, PathLength=2) -> float:
+    """Calculate number of path of length N."""
+    return len(Chem.FindAllPathsOfLengthN(mol, PathLength, useBonds=1))
 
-def GetConstitutional(mol):
-    """
-    #################################################################
-    Get the dictionary of constitutional descriptors for given moelcule mol
-    
-    Usage:
-        
-        result=GetConstitutional(mol)
-        
-        Input: mol is a molecule object.
-        
-        Output: result is a dict form containing all constitutional values.
-    #################################################################
-    """
-    result={}
+
+def CalculatePath1(mol: Chem.Mol) -> float:
+    """Calculate number of path length of 1."""
+    return _CalculatePathN(mol, 1)
+
+
+def CalculatePath2(mol: Chem.Mol) -> float:
+    """Calculate number of path length of 2."""
+    return _CalculatePathN(mol, 2)
+
+
+def CalculatePath3(mol: Chem.Mol) -> float:
+    """Calculate number of path length of 3."""
+    return _CalculatePathN(mol, 3)
+
+
+def CalculatePath4(mol: Chem.Mol) -> float:
+    """Calculate number of path length of 4."""
+    return _CalculatePathN(mol, 4)
+
+
+def CalculatePath5(mol: Chem.Mol) -> float:
+    """Calculate number of path length of 5."""
+    return _CalculatePathN(mol, 5)
+
+
+def CalculatePath6(mol: Chem.Mol) -> float:
+    """Calculate number of path length of 6."""
+    return _CalculatePathN(mol, 6)
+
+
+_constitutional = {'Weight': CalculateHeavyMolWeight,
+                   'AWeight': CalculateAverageMolWeight,
+                   'nhyd': CalculateHydrogenNumber,
+                   'nhal': CalculateHalogenNumber,
+                   'nhet': CalculateHeteroNumber,
+                   'nhev': CalculateHeavyAtomNumber,
+                   'ncof': CalculateFluorinNumber,
+                   'nocl': CalculateChlorinNumber,
+                   'nobr': CalculateBromineNumber,
+                   'nvoi': CalculateIodineNumber,
+                   'ncarb': CalculateCarbonNumber,
+                   'nphos': CalculatePhosphorNumber,
+                   'nulph': CalculateOxygenNumber,
+                   'noxy': CalculateOxygenNumber,
+                   'nnitro': CalculateNitrogenNumber,
+                   'nring': CalculateRingNumber,
+                   'nrot': CalculateRotationBondNumber,
+                   'ndonr': CalculateHdonorNumber,
+                   'naccr': CalculateHacceptorNumber,
+                   'nsb': CalculateSingleBondNumber,
+                   'ndb': CalculateDoubleBondNumber,
+                   'naro': CalculateAromaticBondNumber,
+                   'ntb': CalculateTripleBondNumber,
+                   'nta': CalculateAllAtomNumber,
+                   'PC1': CalculatePath1,
+                   'PC2': CalculatePath2,
+                   'PC3': CalculatePath3,
+                   'PC4': CalculatePath4,
+                   'PC5': CalculatePath5,
+                   'PC6': CalculatePath6}
+
+
+def GetConstitutional(mol: Chem.Mol) -> dict:
+    """Get all (30) constitutional descriptors."""
+    result = {}
     for DesLabel in _constitutional.keys():
-        result[DesLabel]=round(_constitutional[DesLabel](mol),3)
+        result[DesLabel] = round(_constitutional[DesLabel](mol), 3)
     return result
 
 
-def _GetHTMLDoc():
-    """
-    #################################################################
-    Write HTML documentation for this module.
-    #################################################################
-    """
-    import pydoc
-    pydoc.writedoc('constitution')  
-#############################################################
-
-if __name__ =='__main__':
-    
-
-    smis = ['CCCC','CCCCC','CCCCCC','CC(N)C(=O)O','CC(N)C(=O)[O-].[Na+]']
-    smi5=['CCCCCC','CCC(C)CC','CC(C)CCC','CC(C)C(C)C','CCCCCN','c1ccccc1N']
-    for index, smi in enumerate(smis):
-        m = Chem.MolFromSmiles(smi)
-        print index+1
-        print smi      
-        print '\t',GetConstitutional(m)
-        print len(GetConstitutional(m))
-    
+#############################
+# if __name__ =='__main__':
+#     smis = ['CCCC','CCCCC','CCCCCC','CC(N)C(=O)O','CC(N)C(=O)[O-].[Na+]']
+#     smi5=['CCCCCC','CCC(C)CC','CC(C)CCC','CC(C)C(C)C','CCCCCN','c1ccccc1N']
+#     for index, smi in enumerate(smis):
+#         m = Chem.MolFromSmiles(smi)
+#         print(index+1)
+#         print(smi)
+#         print('\t',GetConstitutional(m))
+#         print(len(GetConstitutional(m)))

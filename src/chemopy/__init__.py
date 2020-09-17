@@ -1,4 +1,7 @@
 # -*- coding: utf-8 -*-
-"""
-construct a package!
-"""
+
+
+"""A package to calculate molecular descriptors."""
+
+from pychem import pychem  # noqa: F401
+from pychem.pychem import PyChem2D, PyChem3D  # noqa: F401

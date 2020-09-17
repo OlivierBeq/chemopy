@@ -1,792 +1,332 @@
 # -*- coding: utf-8 -*-
-"""
-##############################################################################
 
-A class used for computing different types of drug descriptors! 
 
-You can freely use and distribute it. If you have any problem, 
+"""Main classes for the calculation of molecular descriptors."""
 
-you could contact with us timely.
+from typing import Dict, Tuple
 
-Authors: Dongsheng Cao and Yizeng Liang.
-
-Date: 2012.11.17
-
-Email: oriental-cds@163.com
-
-##############################################################################
-"""
-
-import getmol
-import kappa
-import charge
-import connectivity 
-import constitution 
-import estate
-import geary
-import moe
-import molproperty 
-import moran
-import moreaubroto 
-import topology
-import fingerprint
-import basak
-import cpsa
-import geometric
-import bcut
-import morse
-import rdf
-import whim
-import pybel
-
+from openbabel import pybel
 from rdkit import Chem
-import string
-from GeoOpt import GetARCFile
+
+from pychem import (basak, bcut, charge, connectivity, constitution, cpsa,
+                    estate, fingerprint, geary, geometric, getmol, kappa, moe,
+                    molproperty, moran, moreaubroto, morse, quanchem, rdf,
+                    topology, whim)
+from pychem.GeoOpt import Dispose, GetARCFile
+
+FingerprintName = list(fingerprint._FingerprintFuncs.keys())
+# ['topological','Estate','FP4','atompairs','torsions',
+#                      'morgan','MACCS']
+
+# TODO: 1) merge both 2D and 3D in a unique class keeping PyChem3D's obmol and rdmol duality
+#       2) create a MOPAC opti method that generates an ARC file
+#       3) force the use of with to dispose ARC file
 
 
-Version=1.0
+class PyChem2D:
+    """A PyDrug class used for computing drug descriptors."""
 
-FingerprintName=['topological','Estate','FP4','atompairs','torsions',
-                     'morgan','MACCS']
-############################################################################## 
-
-class PyChem2d:
-    
-
-    """
-    #################################################################
-    A PyDrug class used for computing drug descriptors.
-    #################################################################
-    """
     def __init__(self):
-        """
-        #################################################################
-        constructor of pydrug.
-        #################################################################
+        """Initialise a PyChem2D object.
+
+        :noindex:
         """
         pass
-    
-    
-    def ReadMolFromFile(self,filename=""):
-        """
-        #################################################################
-        Read a molecule by SDF or MOL file format.
-        
-        Usage:
-            
-            res=ReadMolFromFile(filename)
-            
-            Input: filename is a file name.
-            
-            Output: res is a molecule object.
-        #################################################################
-        """
-        self.mol=Chem.MolFromMolFile(filename)
-        return self.mol
-    
-    
-    def ReadMolFromSmile(self,smi=""):
-        """
-        #################################################################
-        Read a molecule by SMILES string.
-        
-        Usage:
-            
-            res=ReadMolFromSmile(smi)
-            
-            Input: smi is a SMILES string.
-            
-            Output: res is a molecule object.
-        #################################################################
-        """
-        self.mol = Chem.MolFromSmiles(string.strip(smi))
-        
-        return self.mol
-        
-        
-    def ReadMolFromInchi(self,inchi=""):
-        """
-        #################################################################
-        Read a molecule by Inchi string.
-        
-        Usage:
-            
-            res=ReadMolFromInchi(inchi)
-            
-            Input: inchi is a InChi string.
-            
-            Output: res is a molecule object.
-        #################################################################
-        """
-        temp=pybel.readstring("inchi",inchi)
-        smi=temp.write("smi")
-        self.mol = Chem.MolFromSmiles(string.strip(smi))
-        
-        return self.mol
- 
-       
-    def ReadMolFromMol(self,filename=""):
-        """
-        #################################################################
-        Read a molecule with mol file format.
-        
-        Usage:
-            
-            res=ReadMolFromMol(filename)
-            
-            Input: filename is a file name.
-            
-            Output: res is a molecule object.
-        #################################################################
-        """
-        self.mol=Chem.MolFromMolFile(filename)
-        return self.mol
- 
-  
-   
-    def GetMolFromNCBI(self,ID=""):
-        """
-        #################################################################
-        Get a molecule by NCBI id (e.g., 2244).
-        
-        Usage:
-            
-            res=GetMolFromNCBI(ID)
-            
-            Input: ID is a compound ID (CID) in NCBI.
-            
-            Output: res is a SMILES string.
-        #################################################################
-        """
-        res=getmol.GetMolFromNCBI(cid=ID)
-        return res
- 
- 
-   
-    def GetMolFromEBI(self,ID=""):
-        """
-        #################################################################
-        Get a molecule by EBI id.
 
-        Usage:
-            
-            res=GetMolFromEBI(ID)
-            
-            Input: ID is a compound identifier in EBI.
-            
-            Output: res is a SMILES string.
-        #################################################################
+    def ReadMolFromMolFile(self, filename: str = "") -> None:
+        """Read a molecule from SDF or MOL input file."""
+        self.mol = Chem.MolFromMolFile(filename)
+
+    def ReadMolFromSmiles(self, smi: str = "") -> None:
+        """Read a molecule from SMILES string."""
+        self.mol = Chem.MolFromSmiles(smi.strip())
+
+    def ReadMolFromInchi(self, inchi: str = "") -> None:
+        """Read a molecule from InChI string."""
+        self.mol = Chem.MolFromInchi(inchi.strip())
+
+    def ReadMolFromMol(self, filename: str = "") -> None:
+        """Read a molecule from a MOL input file."""
+        self.mol = Chem.MolFromMolFile(filename)
+
+    def GetMolFromNCBI(self, ID: str = "") -> None:
+        """Get a molecule by NCBI id.
+
+        :param ID: CID NCBI compound identifier (e.g., 2244).
         """
-        res=getmol.GetMolFromEBI(ID)
-        return res
- 
- 
-   
-    def GetMolFromCAS(self,ID=""):
+        self.mol = getmol.GetMolFromNCBI(cid=ID)
+
+    def GetMolFromEBI(self, ID: str = "") -> None:
+        """Get a molecule by EBI id.
+
+        :param ID: ChEBI or ChEMBL compound identifier.
         """
-        #################################################################
-        Get a molecule by kegg id (e.g., 50-29-3).
-        
-        Usage:
-            
-            res=GetMolFromCAS(ID)
-            
-            Input: ID is a CAS identifier.
-            
-            Output: res is a SMILES string.
-        #################################################################
+        self.mol = getmol.GetMolFromEBI(ID)
+
+    def GetMolFromCAS(self, ID: str = "") -> None:
+        """Get a molecule by CAS id.
+
+        :param ID: CAS compound identifier (e.g., 50-29-3).
         """
-        res=getmol.GetMolFromCAS(casid=ID)
+        self.mol = getmol.GetMolFromCAS(casid=ID)
+
+    def GetMolFromKegg(self, ID: str = "") -> None:
+        """Get a molecule by kegg id.
+
+        :param ID: KEGG compound identifier (e.g., D02176).
+        """
+        self.mol = getmol.GetMolFromKegg(kid=ID)
+
+    def GetMolFromDrugbank(self, ID: str = "") -> None:
+        """Get a molecule by drugbank id.
+
+        :param ID: Drugbank compound identifier (e.g. DB00133)
+        """
+        self.mol = getmol.GetMolFromDrugbank(dbid=ID)
+
+    def GetKappa(self) -> dict:
+        """Calculate all 7 kappa descriptors."""
+        res = kappa.GetKappa(self.mol)
         return res
 
-   
-     
-    def GetMolFromKegg(self,ID=""):
-        """
-        #################################################################
-        Get a molecule by kegg id (e.g., D02176).
-        
-        Usage:
-            
-            res=GetMolFromKegg(ID)
-            
-            Input: ID is a compound identifier in KEGG.
-            
-            Output: res is a SMILES string.
-        #################################################################
-        """
-        res=getmol.GetMolFromKegg(kid=ID)
+    def GetCharge(self) -> dict:
+        """Calculate all 25 charge descriptors."""
+        res = charge.GetCharge(self.mol)
         return res
 
- 
- 
-    def GetMolFromDrugbank(self,ID=""):
-        """
-        #################################################################
-        Get a molecule by drugbank id (e.g.,DB00133).
-        
-        Usage:
-            
-            res=GetMolFromDrugbank(ID)
-            
-            Input: ID is a compound identifier in Drugbank.
-            
-            Output: res is a SMILES string.
-        #################################################################
-        """
-        res=getmol.GetMolFromDrugbank(dbid=ID)
-        return res
-  
-    
-    def GetKappa(self):
-        """
-        #################################################################
-        Calculate all kappa descriptors (7).
-        
-        Usage:
-            
-            res=GetKappa()
-            
-            res is a dict form.
-        #################################################################
-        """
-        res=kappa.GetKappa(self.mol)
-        return res
-    
-    
-    def GetCharge(self):
-        """
-        #################################################################
-        Calculate all charge descriptors (25).
-        
-        Usage:
-            
-            res=GetCharge()
-            
-            res is a dict form.
-        #################################################################
-        """
-        res=charge.GetCharge(self.mol)
-        return res
-    
-    
-    def GetConnectivity(self):
-        """
-        #################################################################
-        Calculate all conenctivity descriptors (44).
-        
-        Usage:
-            
-            res=GetConnectivity()
-            
-            res is a dict form.
-        #################################################################
-        """
-        res=connectivity.GetConnectivity(self.mol)
-        return res
-        
-    
-    
-    def GetConstitution(self):
-        """
-        #################################################################
-        Calculate all constitutional descriptors (30).
-        
-        Usage:
-            
-            res=GetConstitution()
-            
-            res is a dict form.
-        #################################################################
-        """
-        res=constitution.GetConstitutional(self.mol)
-        return res
-    
-    
-    def GetEstate(self):
-        """
-        #################################################################
-        Calculate estate descriptors (316).
-        
-        Usage:
-            
-            res=GetEstate()
-            
-            res is a dict form.
-        #################################################################
-        """
-        res=estate.GetEstate(self.mol)
-        return res
-    
-    
-    def GetGeary(self):
-        """
-        #################################################################
-        Calculate all Geary autocorrelation descriptors (32).
-        
-        Usage:
-            
-            res=GetGeary()
-            
-            res is a dict form.
-        #################################################################
-        """
-        res=geary.GetGearyAuto(self.mol)
-        return res
-    
-    
-    def GetMOE(self):
-        """
-        #################################################################
-        Calculate all MOE-type descriptors (60).
-        
-        Usage:
-            
-            res=GetMOE()
-            
-            res is a dict form.
-        #################################################################
-        """
-        res=moe.GetMOE(self.mol)
-        return res
-    
-    
-    def GetMolProperty(self):
-        """
-        #################################################################
-        Calculate all molecular properties (6).
-        
-        Usage:
-            
-            res=GetMolProperty()
-            
-            res is a dict form.
-        #################################################################
-        """
-        res=molproperty.GetMolecularProperty(self.mol)
-        return res
-    
-    
-    def GetMoran(self):
-        """
-        #################################################################
-        Calculate all Moran autocorrealtion descriptors (32).
-        
-        Usage:
-            
-            res=GetMoran()
-            
-            res is a dict form.
-        #################################################################
-        """
-        res=moran.GetMoranAuto(self.mol)
-        return res
-    
-    
-    def GetMoreauBroto(self):
-        """
-        #################################################################
-        Calculate all Moreau-Broto autocorrelation descriptors(32).
-        
-        Usage:
-            
-            res=GetMoreauBroto()
-            
-            res is a dict form.
-        #################################################################
-        """
-        res=moreaubroto.GetMoreauBrotoAuto(self.mol)
-        return res
-    
-    
-    def GetTopology(self):
-        """
-        #################################################################
-        Calculate all topological descriptors (35).
-        
-        Usage:
-            
-            res=GetTopology()
-            
-            res is a dict form.
-        #################################################################
-        """
-        res=topology.GetTopology(self.mol)
-        return res
-    
-        
-        
-    def GetBcut(self):
-        """
-        #################################################################
-        Calculate all bcut/burden descriptors (64).
-        
-        Usage:
-            
-            res=GetBcut()
-            
-            res is a dict form.
-        #################################################################
-        """
-        res=bcut.GetBurden(self.mol)
-        return res
-    
-    def GetBasak(self):
-        """
-        #################################################################
-        Calculate all Basak information descriptors (21).
-        
-        Usage:
-            
-            res=GetBasak()
-            
-            res is a dict form.
-        #################################################################
-        """
-        res=basak.Getbasak(self.mol)
+    def GetConnectivity(self) -> dict:
+        """Calculate all 44 connectivity descriptors."""
+        res = connectivity.GetConnectivity(self.mol)
         return res
 
+    def GetConstitution(self) -> dict:
+        """Calculate all 30 constitutional descriptors."""
+        res = constitution.GetConstitutional(self.mol)
+        return res
 
-        
-        
-    def GetFingerprint(self,FPName='topological'):
+    def GetEstateDescriptors(self) -> dict:
+        """Calculate 316 estate descriptors."""
+        res = estate.GetEstateDescriptors(self.mol)
+        return res
+
+    def GetGeary(self) -> dict:
+        """Calculate all 32 Geary autocorrelation descriptors."""
+        res = geary.GetGearyAuto(self.mol)
+        return res
+
+    def GetMOE(self) -> dict:
+        """Calculate all 60 MOE-type descriptors."""
+        res = moe.GetMOE(self.mol)
+        return res
+
+    def GetMolProperties(self) -> dict:
+        """Calculate all 6 molecular properties."""
+        res = molproperty.GetMolecularProperties(self.mol)
+        return res
+
+    def GetMoran(self) -> dict:
+        """Calculate all 32 Moran autocorrealtion descriptors."""
+        res = moran.GetMoranAuto(self.mol)
+        return res
+
+    def GetMoreauBroto(self) -> dict:
+        """Calculate all 32 Moreau-Broto autocorrelation descriptors."""
+        res = moreaubroto.GetMoreauBrotoAuto(self.mol)
+        return res
+
+    def GetTopology(self) -> dict:
+        """Calculate all 35 topological descriptors."""
+        res = topology.GetTopology(self.mol)
+        return res
+
+    def GetBcut(self) -> dict:
+        """Calculate all 64 bcut/burden descriptors."""
+        res = bcut.GetBurden(self.mol)
+        return res
+
+    def GetBasak(self) -> dict:
+        """Calculate all 21 Basak information descriptors."""
+        res = basak.Getbasak(self.mol)
+        return res
+
+    def GetAllFingerprints(self, radius: int = 2) -> Dict[str, Tuple[int, dict]]:
+        """Calculate all molecular fingerprints.
+
+        :param radius: maximum radius of Morgan fingeprints.
         """
-        #################################################################
-        Calculate all fingerprint descriptors.
-        
-        see the fingerprint type in FingerprintName
-        
-        Usage:
-            
-            res=GetFingerprint(FPName='topological')
-            
-            res is a tuple form.
-        #################################################################
+        fps = {}
+        for FPName in FingerprintName:
+            temp = fingerprint._FingerprintFuncs[FPName]
+            if FPName == 'morgan':
+                size, bits, _ = temp(self.mol, radius)
+            else:
+                size, bits, _ = temp(self.mol)
+            fps.update({FPName: (size, bits)})
+        fps.update(estate.GetEstateFingerprints(self.mol))
+        return fps
+
+    def GetFingerprint(self, FPName: str = 'topological') -> Tuple[int, dict]:
+        """Calculate molecular fingerprint.
+
+        :param FPName: fingerprint name as in pychem.FingerprintName
         """
-        
         if FPName in FingerprintName:
-            temp=fingerprint._FingerprintFuncs[FPName]
-            res=temp(self.mol)
-        else:
-            res=fingerprint.CalculateDaylightFingerprint(self.mol)
-        
-        
-        return res[0],res[1]
-            
-        
-    def GetAllDescriptor(self):
-        """
-        #################################################################
-        Calculate all descriptors (633).
-        
-        Usage:
-            
-            res=GetAllDescriptor()
-            
-            res is a dict form.
-        #################################################################
-        """
-        res={}
+            size, bits, _ = fingerprint._FingerprintFuncs[FPName](self.mol)
+            return size, bits
+        raise NotImplementedError(f'Fingerprint type {FPName} is not available.')
+
+    def GetAllDescriptors(self) -> dict:
+        """Calculate all 633 2D descriptors."""
+        res = {}
         res.update(self.GetKappa())
         res.update(self.GetCharge())
         res.update(self.GetConnectivity())
         res.update(self.GetConstitution())
-        res.update(self.GetEstate())
+        res.update(self.GetEstateDescriptors())
         res.update(self.GetGeary())
         res.update(self.GetMOE())
         res.update(self.GetMoran())
         res.update(self.GetMoreauBroto())
         res.update(self.GetTopology())
-        res.update(self.GetMolProperty())
+        res.update(self.GetMolProperties())
         res.update(self.GetBasak())
         res.update(self.GetBcut())
-        
         return res
-##############################################################################    
-class PyChem3d:
-    
 
-    """
-    #################################################################
-    A PyDrug class used for computing drug descriptors.
-    #################################################################
-    """
+
+class PyChem3D:
+    """PyDrug class used for computing drug descriptors."""
+
     def __init__(self):
-        """
-        #################################################################
-        constructor of pydrug.
-        #################################################################
+        """Initialise a PyChem3D object.
+
+        :noindex:
         """
         pass
+
+    def ReadMol(self, molstr: str = "", molformat: str = 'smi') -> None:
+        """Read a molecular input string.
+
+        :param molstr: input molecular string
+        :param molformat: 3-letters code for openbabel supported format
+        """
+        self.mol = pybel.readstring(molformat, molstr)
+        self.rdmol = Chem.MolFromMolBlock(self.mol.write(format='sdf'))
+
+    def GetMolFromNCBI(self, ID: str = "") -> None:
+        """Get a molecule by NCBI id.
+
+        :param ID: CID NCBI compound identifier (e.g., 2244).
+        """
+        self.rdmol = getmol.GetMolFromNCBI(cid=ID)
+        self.mol = pybel.readstring('sdf', Chem.MolToMolBlock(self.rdmol))
+
+    def GetMolFromEBI(self, ID: str = "") -> None:
+        """Get a molecule by EBI id.
+
+        :param ID: ChEBI or ChEMBL compound identifier.
+        """
+        self.rdmol = getmol.GetMolFromEBI(ID)
+        self.mol = pybel.readstring('sdf', Chem.MolToMolBlock(self.rdmol))
+
+    def GetMolFromCAS(self, ID="") -> None:
+        """Get a molecule by CAS id.
+
+        :param ID: CAS compound identifier (e.g., 50-29-3).
+        """
+        self.rdmol = getmol.GetMolFromCAS(casid=ID)
+        self.mol = pybel.readstring('sdf', Chem.MolToMolBlock(self.rdmol))
+
+    def GetMolFromKegg(self, ID: str = "") -> None:
+        """Get a molecule by kegg id.
+
+        :param ID: KEGG compound identifier (e.g., D02176).
+        """
+        self.rdmol = getmol.GetMolFromKegg(kid=ID)
+        self.mol = pybel.readstring('sdf', Chem.MolToMolBlock(self.rdmol))
+
+    def GetMolFromDrugbank(self, ID: str = "") -> None:
+        """Get a molecule by drugbank id.
+
+        :param ID: Drugbank compound identifier (e.g. DB00133)
+        """
+        self.rdmol = getmol.GetMolFromDrugbank(dbid=ID)
+        self.mol = pybel.readstring('sdf', Chem.MolToMolBlock(self.rdmol))
+
+    def GetGeometric(self) -> dict:
+        """Calculate all 12 geometric descriptors."""
+        GetARCFile(self.mol)
+        res = geometric.GetGeometric(self.mol)
+        return res
+
+    def GetMoRSE(self) -> dict:
+        """Calculate all 210 3D MoRSE descriptors."""
+        GetARCFile(self.mol)
+        res = morse.GetMoRSE(self.mol)
+        return res
     
-        
-        
-    def ReadMol(self,molstr="",molformat='smi'):
-        """
-        #################################################################
-        Read a molecule by Inchi string.
-        
-        Usage:
-            
-            res=ReadMolFromInchi(inchi)
-            
-            Input: inchi is a InChi string.
-            
-            Output: res is a molecule object.
-        #################################################################
-        """
-        
-        self.mol =pybel.readstring(molformat,molstr)
-        
-        
-        return self.mol
-
-  
-   
-    def GetMolFromNCBI(self,ID=""):
-        """
-        #################################################################
-        Get a molecule by NCBI id (e.g., 2244).
-        
-        Usage:
-            
-            res=GetMolFromNCBI(ID)
-            
-            Input: ID is a compound ID (CID) in NCBI.
-            
-            Output: res is a SMILES string.
-        #################################################################
-        """
-        res=getmol.GetMolFromNCBI(cid=ID)
-        return res
- 
- 
-   
-    def GetMolFromEBI(self,ID=""):
-        """
-        #################################################################
-        Get a molecule by EBI id.
-
-        Usage:
-            
-            res=GetMolFromEBI(ID)
-            
-            Input: ID is a compound identifier in EBI.
-            
-            Output: res is a SMILES string.
-        #################################################################
-        """
-        res=getmol.GetMolFromEBI(ID)
-        return res
- 
- 
-   
-    def GetMolFromCAS(self,ID=""):
-        """
-        #################################################################
-        Get a molecule by kegg id (e.g., 50-29-3).
-        
-        Usage:
-            
-            res=GetMolFromCAS(ID)
-            
-            Input: ID is a CAS identifier.
-            
-            Output: res is a SMILES string.
-        #################################################################
-        """
-        res=getmol.GetMolFromCAS(casid=ID)
-        return res
-
-   
-     
-    def GetMolFromKegg(self,ID=""):
-        """
-        #################################################################
-        Get a molecule by kegg id (e.g., D02176).
-        
-        Usage:
-            
-            res=GetMolFromKegg(ID)
-            
-            Input: ID is a compound identifier in KEGG.
-            
-            Output: res is a SMILES string.
-        #################################################################
-        """
-        res=getmol.GetMolFromKegg(kid=ID)
-        return res
-
- 
- 
-    def GetMolFromDrugbank(self,ID=""):
-        """
-        #################################################################
-        Get a molecule by drugbank id (e.g.,DB00133).
-        
-        Usage:
-            
-            res=GetMolFromDrugbank(ID)
-            
-            Input: ID is a compound identifier in Drugbank.
-            
-            Output: res is a SMILES string.
-        #################################################################
-        """
-        res=getmol.GetMolFromDrugbank(dbid=ID)
-        return res   
-
-
-    def GetGeometric(self):
-        """
-        #################################################################
-        Calculate all geometric descriptors (12).
-        
-        Usage:
-            
-            res=GetGeometric()
-            
-            res is a dict form.
-        #################################################################
-        """
+    def GetRDF(self) -> dict:
+        """Calculate all 180 3D RDF descriptors."""
         GetARCFile(self.mol)
-        res=geometric.GetGeometric(self.mol)
+        res = rdf.GetRDF(self.mol)
         return res
-        
 
-    def GetMoRSE(self):
-        """
-        #################################################################
-        Calculate all 3-D MoRSE descriptors (210).
-        
-        Usage:
-            
-            res=GetMoRSE()
-            
-            res is a dict form.
-        #################################################################
-        """
+    def GetWHIM(self) -> dict:
+        """Calculate all 70 WHIM descriptors."""
         GetARCFile(self.mol)
-        res=morse.GetMoRSE(self.mol)
+        res = whim.GetWHIM()
         return res
-        
-        
-    
-    def GetRDF(self):
-        """
-        #################################################################
-        Calculate all 3-D RDF descriptors (180).
-        
-        Usage:
-            
-            res=GetRDF()
-            
-            res is a dict form.
-        #################################################################
-        """
-        GetARCFile(self.mol)
-        res=rdf.GetRDF(self.mol)
-        return res
-        
-        
 
-    def GetWHIM(self):
-        """
-        #################################################################
-        Calculate all WHIM descriptors (70).
-        
-        Usage:
-            
-            res=GetWHIM()
-            
-            res is a dict form.
-        #################################################################
-        """
+    def GetCPSA(self) -> dict:
+        """Calculate all 30 CPSA descriptors."""
         GetARCFile(self.mol)
-        res=whim.GetWHIM()
+        res = cpsa.GetCPSA()
         return res
-        
-    
 
-    def GetCPSA(self):
-        """
-        #################################################################
-        Calculate all CPSA descriptors (30).
-        
-        Usage:
-            
-            res=GetCPSA()
-            
-            res is a dict form.
-        #################################################################
-        """
-        GetARCFile(self.mol)
-        res=cpsa.GetCPSA()
-        return res
-        
-        
-            
-        
-    def GetAllDescriptor(self):
-        """
-        #################################################################
-        Calculate all descriptors (502).
-        
-        Usage:
-            
-            res=GetAllDescriptor()
-            
-            res is a dict form.
-        #################################################################
-        """
-        res={}
+    def GetAllDescriptor(self) -> dict:
+        """Calculate all 502 3D descriptors."""
+        res = {}
         GetARCFile(self.mol)
         res.update(cpsa.GetCPSA())
         res.update(rdf.GetRDF(self.mol))
         res.update(whim.GetWHIM())
         res.update(morse.GetMoRSE(self.mol))
         res.update(geometric.GetGeometric(self.mol))
-        
         return res
 
 
-##############################################################################
-if __name__=="__main__":
-    
-    import pydoc
-    pydoc.writedoc('pychem')
-    
-    drugclass=PyChem2d()
-    drugclass.ReadMolFromSmile("CCC1(c2ccccc2)C(=O)N(C)C(=N1)O")
-    print drugclass.GetKappa()
-    print len(drugclass.GetTopology())
-    print len(drugclass.GetBasak())
-    print len(drugclass.GetKappa())
-    print len(drugclass.GetConnectivity())
-    print len(drugclass.GetConstitution())
-    print len(drugclass.GetMoran())
-    print len(drugclass.GetMOE())
-    print len(drugclass.GetGeary())
-    print len(drugclass.GetMolProperty())
-    print len(drugclass.GetBcut())
-    print len(drugclass.GetEstate())
-    print len(drugclass.GetMoreauBroto())
-    print len(drugclass.GetCharge())
-    print len(drugclass.GetAllDescriptor())
-    print drugclass.GetAllDescriptor()
-#    print drugclass.GetMolFromDrugbank(ID="DB00133")
-    res=drugclass.GetFingerprint(FPName='Estate')
-    print res
-    
-    ###############################
-    drug=PyChem3d()
-    molsmi=drug.GetMolFromDrugbank("DB00133")
-    print molsmi
-    drug.ReadMol(molsmi,'smi')
-    print len(drug.GetGeometric())
-    print len(drug.GetCPSA())
-    print len(drug.GetMoRSE())
-    print len(drug.GetRDF())
-    print len(drug.GetWHIM())
-    print drug.GetAllDescriptor()
-    print len(drug.GetAllDescriptor())
+# if __name__ == "__main__":
+#     drugclass = PyChem2D()
+#     drugclass.ReadMolFromSmile("CCC1(c2ccccc2)C(=O)N(C)C(=N1)O")
+#     print(drugclass.GetKappa())
+#     print(len(drugclass.GetTopology()))
+#     print(len(drugclass.GetBasak()))
+#     print(len(drugclass.GetKappa()))
+#     print(len(drugclass.GetConnectivity()))
+#     print(len(drugclass.GetConstitution()))
+#     print(len(drugclass.GetMoran()))
+#     print(len(drugclass.GetMOE()))
+#     print(len(drugclass.GetGeary()))
+#     print(len(drugclass.GetMolProperty()))
+#     print(len(drugclass.GetBcut()))
+#     print(len(drugclass.GetEstate()))
+#     print(len(drugclass.GetMoreauBroto()))
+#     print(len(drugclass.GetCharge()))
+#     print(len(drugclass.GetAllDescriptor()))
+#     print(drugclass.GetAllDescriptor())
+# #    print(drugclass.GetMolFromDrugbank(ID="DB00133"))
+#     res = drugclass.GetFingerprint(FPName='Estate')
+#     print(res)
+
+#     ###############################
+#     drug = PyChem3D()
+#     molsmi = drug.GetMolFromDrugbank("DB00133")
+#     print(molsmi)
+#     drug.ReadMol(molsmi, 'smi')
+#     print(len(drug.GetGeometric()))
+#     print(len(drug.GetCPSA()))
+#     print(len(drug.GetMoRSE()))
+#     print(len(drug.GetRDF()))
+#     print(len(drug.GetWHIM()))
+#     print(drug.GetAllDescriptor())
+#     print(len(drug.GetAllDescriptor()))
