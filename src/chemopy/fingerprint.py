@@ -14,6 +14,13 @@ from pychem.estate import CalculateEstateFingerprint as EstateFingerprint
 similaritymeasure = [i[0] for i in DataStructs.similarityFunctions]
 
 
+# TODO: wrap fingerprints in a dedicated class
+#       result is a tuple form. The first is the number of
+#       fingerprints. The second is a dict form whose keys are the
+#       position which this molecule has some substructure. The third
+#       is the DataStructs which is used for calculating the similarity.
+
+
 def CalculateDaylightFingerprint(mol: Chem.Mol):
     """Calculate Daylight-like fingerprint or topological fingerprint (2048 bits)."""
     res = {}
@@ -40,11 +47,13 @@ def CalculateFP4Fingerprint(mol: Chem.Mol):
     """Calculate FP4 fingerprints (307 bits)."""
     res = {}
     NumFinger = 307
-    m = pybel.readstring('smi', mol)
+    m = pybel.readstring('smi', Chem.MolToSmiles(mol))
     temp = m.calcfp('FP4').bits
     for i in temp:
         res.update({i: 1})
-    return NumFinger, res
+    vec = DataStructs.ExplicitBitVect(307)
+    vec.SetBitsFromList([x - 1 for x in temp])
+    return NumFinger, res, vec
 
 
 def CalculateEstateFingerprint(mol: pybel.Molecule):
