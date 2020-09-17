@@ -12,33 +12,10 @@ from rdkit import Chem
 
 from pychem.AtomProperty import GetRelativeAtomicProperty
 from pychem.GeoOpt import _ReadCoordinates
+from pychem.utils import GetGeometricalDistanceMatrix, GetR
 
 _beta = 100
 
-def GetR(n: int) -> List[float]:
-    """Calcuate the parameters R of the RDF equation."""
-    R = []
-    for i in range(2, n + 2):
-        R.append(float(i * 0.5))
-    return R
-
-
-def _GetAtomDistance(x: List[float], y: List[float]) -> float:
-    """Calculate Euclidean distance between two atomic coordinates."""
-    temp = [math.pow(x[0] - y[0], 2), math.pow(x[1] - y[1], 2), math.pow(x[2] - y[2], 2)]
-    res = math.sqrt(sum(temp))
-    return res
-    
-
-def _GetGementricalDistanceMatrix(CoordinateList: List[List[float]]) -> scipy.matrix:
-    """Calculate distance matrix from coordinate list."""
-    NAtom = len(CoordinateList)
-    DistanceMatrix = scipy.zeros((NAtom, NAtom))
-    for i in range(NAtom - 1):
-        for j in range(i + 1, NAtom):
-            DistanceMatrix[i, j] = _GetAtomDistance(CoordinateList[i], CoordinateList[j])
-            DistanceMatrix[j, i] = DistanceMatrix[i, j]
-    return DistanceMatrix
 
     
 def CalculateUnweightMoRSE(ChargeCoordinates: List[List[float]]) -> dict:
@@ -52,7 +29,7 @@ def CalculateUnweightMoRSE(ChargeCoordinates: List[List[float]]) -> dict:
     for i in ChargeCoordinates:
         # if i[0]!='H':
         temp.append([float(i[1]), float(i[2]), float(i[3])])
-    DM = _GetGementricalDistanceMatrix(temp)
+    DM = GetGeometricalDistanceMatrix(temp)
     nAT = len(temp)
     RDFresult = {}
     for kkk, Ri in enumerate(R):
@@ -76,7 +53,7 @@ def CalculateChargeMoRSE(ChargeCoordinates: List[List[float]]) -> dict:
         # if i[0]!='H':
         temp.append([float(i[1]), float(i[2]), float(i[3])])
         charge.append(float(i[4]))
-    DM = _GetGementricalDistanceMatrix(temp)
+    DM = GetGeometricalDistanceMatrix(temp)
     nAT = len(temp)
     RDFresult = {}
     for kkk, Ri in enumerate(R):
@@ -99,7 +76,7 @@ def CalculateMassMoRSE(mol: Chem.Mol, ChargeCoordinates: List[List[float]]) -> d
     for i in ChargeCoordinates:
         # if i[0]!='H':
         temp.append([float(i[1]), float(i[2]), float(i[3])])
-    DM = _GetGementricalDistanceMatrix(temp)
+    DM = GetGeometricalDistanceMatrix(temp)
     nAT = len(temp)
     RDFresult = {}
     for kkk, Ri in enumerate(R):
@@ -122,7 +99,7 @@ def CalculateAtomicNumberMoRSE(mol: Chem.Mol, ChargeCoordinates: List[List[float
     for i in ChargeCoordinates:
         # if i[0]!='H':
         temp.append([float(i[1]), float(i[2]), float(i[3])])
-    DM = _GetGementricalDistanceMatrix(temp)
+    DM = GetGeometricalDistanceMatrix(temp)
     nAT = len(temp)
     RDFresult = {}
     for kkk, Ri in enumerate(R):
@@ -146,7 +123,7 @@ def CalculatePolarizabilityMoRSE(ChargeCoordinates: List[List[float]]) -> dict:
         # if i[0]!='H':
         temp.append([float(i[1]), float(i[2]), float(i[3])])
         polarizability.append(GetRelativeAtomicProperty(i[0], 'alapha'))
-    DM = _GetGementricalDistanceMatrix(temp)
+    DM = GetGeometricalDistanceMatrix(temp)
     nAT = len(temp)
     RDFresult = {}
     for kkk, Ri in enumerate(R):
@@ -170,7 +147,7 @@ def CalculateSandersonElectronegativityMoRSE(ChargeCoordinates: List[List[float]
         # if i[0]!='H':
         temp.append([float(i[1]), float(i[2]), float(i[3])])
         En.append(GetRelativeAtomicProperty(i[0], 'En'))
-    DM = _GetGementricalDistanceMatrix(temp)
+    DM = GetGeometricalDistanceMatrix(temp)
     nAT = len(temp)
     RDFresult = {}
     for kkk, Ri in enumerate(R):
@@ -194,7 +171,7 @@ def CalculateVDWVolumeMoRSE(ChargeCoordinates: List[List[float]]) -> dict:
         # if i[0]!='H':
         temp.append([float(i[1]), float(i[2]), float(i[3])])
         VDW.append(GetRelativeAtomicProperty(i[0], 'V'))
-    DM = _GetGementricalDistanceMatrix(temp)
+    DM = GetGeometricalDistanceMatrix(temp)
     nAT = len(temp)
     RDFresult = {}
     for kkk, Ri in enumerate(R):
