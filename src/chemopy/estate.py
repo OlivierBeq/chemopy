@@ -127,38 +127,44 @@ def CalculateDiffMaxMinEState(mol: Chem.Mol) -> float:
     return round(max(_CalculateEState(mol)) - min(_CalculateEState(mol)), 3)
 
 
-def CalculateAtomTypeEState(mol: Chem.Mol) -> dict:
-    """Calculate sum of E-State values."""
-    AT = ATEstate.GetAtomLabel(mol)
-    Estate = _CalculateEState(mol)
-    res = []
-    for i in AT:
-        if i == []:
-            res.append(0)
-        else:
-            res.append(sum(Estate[k] for k in i))
-    ESresult = {}
-    for n, es in enumerate(res):
-        ESresult[f'S{n+1}'] = round(es, 3)
-    return ESresult
+def CalculateEstateFingerprint(mol: Chem.Mol, implementation='rdkit') -> dict:
+    """Calculate the sum of EState values for each EState atom type.
+
+    :param implementation: either rdkit or pychem. pychem rounds
+                           to the third decimal place but not rdkit.
+    """
+    if implementation not in ['rdkit', 'pychem']:
+        raise ValueError('Implementation of AtomTypeEState must be either rdkit or pychem.')
+    if implementation == 'pychem':
+        AT = ATEstate.GetAtomLabel(mol)
+        Estate = _CalculateEState(mol)
+        res = []
+        for i in AT:
+            if i == []:
+                res.append(0)
+            else:
+                res.append(sum(Estate[k] for k in i))
+        ESresult = {}
+        for n, es in enumerate(res):
+            ESresult[f'S{n+1}'] = round(es, 3)
+        return ESresult
+    else:  # RDKit with more decimals than pychem
+        temp = ESFP.FingerprintMol(mol)
+        res = {}
+        for i, j in enumerate(temp[1]):
+            res[f'S{i + 1}'] = round(j, 3)
+        return res
 
 
+def CalculateAtomTypeEstateFingerprint(mol: Chem.Mol) -> dict:
+    """Calculate EState Fingerprints.
 
-def CalculateEstateFingerprint(mol: Chem.Mol) -> dict:
-    """Calculate EState fingerprints."""
+    This is the counts of each EState atom type in the molecule.
+    """
     temp = ESFP.FingerprintMol(mol)
     res = {}
     for i, j in enumerate(temp[0]):
         res[f'Sfinger{i + 1}'] = j
-    return res
-
-
-def CalculateEstateValue(mol: Chem.Mol) -> dict:
-    """Calculate EState values."""
-    temp = ESFP.FingerprintMol(mol)
-    res = {}
-    for i, j in enumerate(temp[1]):
-        res[f'S{i + 1}'] = round(j, 3)
     return res
 
 
@@ -194,13 +200,9 @@ def CalculateMinAtomTypeEState(mol: Chem.Mol) -> dict:
     return ESresult
 
 
-def GetEstate(mol):
-    """Calculate all (245) EState descriptors and fingerprints."""
+def GetEstateDescriptors(mol: Chem.Mol) -> dict:
+    """Calculate all (8) EState descriptors."""
     result = {}
-    #result.update(CalculateEstateFingerprint(mol))
-    result.update(CalculateEstateValue(mol))
-    result.update(CalculateMaxAtomTypeEState(mol))
-    result.update(CalculateMinAtomTypeEState(mol))
     result.update({'Shev': CalculateHeavyAtomEState(mol)})
     result.update({'Scar': CalculateCAtomEState(mol)})
     result.update({'Shal': CalculateHalogenEState(mol)})
@@ -209,7 +211,17 @@ def GetEstate(mol):
     result.update({'Smax': CalculateMaxEState(mol)})
     result.update({'Smin': CalculateMinEState(mol)})
     result.update({'DS': CalculateDiffMaxMinEState(mol)})
-	return result
+    return result
+
+
+def GetEstateFingerprints(mol: Chem.Mol) -> dict:
+    """Calculate all (316) EState descriptors."""
+    result = {}
+    result.update(CalculateEstateFingerprint(mol))
+    result.update(CalculateAtomTypeEstateFingerprint(mol))
+    result.update(CalculateMaxAtomTypeEState(mol))
+    result.update(CalculateMinAtomTypeEState(mol))
+    return result
 
 
 ################################################################
