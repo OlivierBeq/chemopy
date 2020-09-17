@@ -14,7 +14,7 @@ periodicTable = rdchem.GetPeriodicTable()
 def CalculateKappa1(mol: Chem.Mol) -> float:
     """Calculate molecular shape index for one bonded fragment."""
     P1 = mol.GetNumBonds(onlyHeavy=1)
-    A = mol.GetNumAtoms(onlyHeavy=1)
+    A = mol.GetNumHeavyAtoms()
     denom = P1 + 0.0
     if denom:
         kappa = (A) * (A - 1) ** 2 / denom ** 2
@@ -26,7 +26,7 @@ def CalculateKappa1(mol: Chem.Mol) -> float:
 def CalculateKappa2(mol: Chem.Mol) -> float:
     """Calculate molecular shape index for two bonded fragments."""
     P2 = len(Chem.FindAllPathsOfLengthN(mol, 2))
-    A = mol.GetNumAtoms(onlyHeavy=1)
+    A = mol.GetNumHeavyAtoms()
     denom = P2 + 0.0
     if denom:
         kappa = (A - 1) * (A - 2) ** 2 / denom ** 2
@@ -38,7 +38,7 @@ def CalculateKappa2(mol: Chem.Mol) -> float:
 def CalculateKappa3(mol: Chem.Mol) -> float:
     """Calculate molecular shape index for three bonded fragments."""
     P3 = len(Chem.FindAllPathsOfLengthN(mol, 3))
-    A = mol.GetNumAtoms(onlyHeavy=1)
+    A = mol.GetNumHeavyAtoms()
     denom = P3 + 0.0
     if denom:
         if A % 2 == 1:
@@ -90,7 +90,7 @@ def _HallKierAlpha(mol: Chem.Mol) -> float:
 def CalculateKappaAlapha1(mol: Chem.Mol) -> float:
     """Calculate molecular shape index for one bonded fragment."""
     P1 = mol.GetNumBonds(onlyHeavy=1)
-    A = mol.GetNumAtoms(onlyHeavy=1)
+    A = mol.GetNumHeavyAtoms()
     alpha = _HallKierAlpha(mol)
     denom = P1 + alpha
     if denom:
@@ -103,7 +103,7 @@ def CalculateKappaAlapha1(mol: Chem.Mol) -> float:
 def CalculateKappaAlapha2(mol: Chem.Mol) -> float:
     """Calculate molecular shape index for two bonded fragments."""
     P2 = len(Chem.FindAllPathsOfLengthN(mol, 2))
-    A = mol.GetNumAtoms(onlyHeavy=1)
+    A = mol.GetNumHeavyAtoms()
     alpha = _HallKierAlpha(mol)
     denom = P2 + alpha
     if denom:
@@ -116,7 +116,7 @@ def CalculateKappaAlapha2(mol: Chem.Mol) -> float:
 def CalculateKappaAlapha3(mol: Chem.Mol) -> float:
     """Calculate molecular shape index for three bonded fragments."""
     P3 = len(Chem.FindAllPathsOfLengthN(mol, 3))
-    A = mol.GetNumAtoms(onlyHeavy=1)
+    A = mol.GetNumHeavyAtoms()
     alpha = _HallKierAlpha(mol)
     denom = P3 + alpha
     if denom:
@@ -133,7 +133,7 @@ def CalculateFlexibility(mol: Chem.Mol) -> float:
     """Calculate Kier molecular flexibility index."""
     kappa1 = CalculateKappaAlapha1(mol)
     kappa2 = CalculateKappaAlapha2(mol)
-    A = mol.GetNumAtoms(onlyHeavy=1)
+    A = mol.GetNumHeavyAtoms()
     phi = kappa1 * kappa2 / (A + 0.0)
     return round(phi, 3)
 
