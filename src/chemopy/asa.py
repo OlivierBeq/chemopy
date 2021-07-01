@@ -14,8 +14,8 @@ of Protein Atoms. Lysozyme and Insulin." JMB (1973) 79:351-371.
 import math
 from typing import List
 
-from pychem.GeoOpt import Atom
-from pychem.vector3d import Vector3D, pos_distance, pos_distance_sq
+from chemopy.GeoOpt import Atom
+from chemopy.vector3d import Vector3D, pos_distance, pos_distance_sq
 
 # TODO: change list[x, y, z] to Vector3D
 

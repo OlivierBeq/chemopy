@@ -1,17 +1,18 @@
 # -*- coding: utf-8 -*-
 
-"""Unit tests for pychem."""
+"""Unit tests for chemopy."""
 
 from unittest import TestCase
 
-from openbabel import pybel
+# from openbabel import pybel
 from rdkit import Chem
 
-from pychem import PyChem3D
+from chemopy import PyChem3D
+from tests.constants import MOL_FILE
 
 
 class TestPyChem3D(TestCase):
-    """Tests for Pychem3D."""
+    """Tests for PyChem3D."""
 
     def setUp(self):
         """Create PyChem3D molecule."""
@@ -19,8 +20,11 @@ class TestPyChem3D(TestCase):
         self.mol2 = PyChem3D()
 
     def test_ReadMol(self):
-        """Test GetConnectivity."""
-        pass
+        """Test reading the sample MOL file."""
+        self.mol1.ReadMol(MOL_FILE)
+        self.assertEqual(self.mol1.mol.GetNumHeavyAtoms(), self.num_heavy_atoms)
+        self.assertEqual(Chem.rdMolDescriptors.CalcMolFormula(self.mol1.mol), self.formula)
+        self.molecules.append(self.mol1)
 
     def test_GetMolFromNCBI(self):
         """Test GetConnectivity."""

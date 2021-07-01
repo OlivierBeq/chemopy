@@ -3,5 +3,5 @@
 
 """A package to calculate molecular descriptors."""
 
-from pychem import pychem  # noqa: F401
-from pychem.pychem import PyChem2D, PyChem3D  # noqa: F401
+from chemopy import pychem  # noqa: F401
+from chemopy.pychem import PyChem2D, PyChem3D  # noqa: F401

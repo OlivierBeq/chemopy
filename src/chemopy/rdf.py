@@ -5,9 +5,9 @@
 
 import math
 
-from pychem.AtomProperty import GetRelativeAtomicProperty
-from pychem.GeoOpt import _ReadCoordinates
-from pychem.utils import GetGeometricalDistanceMatrix, GetR
+from chemopy.AtomProperty import GetRelativeAtomicProperty
+from chemopy.GeoOpt import _ReadCoordinates
+from chemopy.utils import GetGeometricalDistanceMatrix, GetR
 
 _beta = 100
 

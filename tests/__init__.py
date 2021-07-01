@@ -1,3 +1,3 @@
 # -*- coding: utf-8 -*-
 
-"""Unit tests for pychem."""
+"""Unit tests for chemopy."""

@@ -7,7 +7,7 @@ import numpy
 import numpy.linalg
 from rdkit import Chem
 
-from pychem.AtomProperty import GetRelativeAtomicProperty
+from chemopy.AtomProperty import GetRelativeAtomicProperty
 
 
 def _GetBurdenMatrix(mol: Chem.Mol, propertylabel: str = 'm') -> numpy.matrix:

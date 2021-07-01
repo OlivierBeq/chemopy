@@ -3,8 +3,8 @@
 
 """Charged partial surface area (CPSA) descriptors."""
 
-from pychem import asa
-from pychem.GeoOpt import GetAtomClassList, _ReadCoordinates
+from chemopy import asa
+from chemopy.GeoOpt import GetAtomClassList, _ReadCoordinates
 
 
 def GetChargeSA(arc_file, RadiusProbe=1.5, n_sphere_point=960):

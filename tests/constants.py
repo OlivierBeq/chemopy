@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 
-"""Constant for pychem unittesting."""
+"""Constant for chemopy unittesting."""
 
 import os
 

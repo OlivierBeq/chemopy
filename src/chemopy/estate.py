@@ -12,7 +12,7 @@ import numpy
 from rdkit import Chem
 from rdkit.Chem.EState import Fingerprinter as ESFP
 
-import pychem.AtomTypes as ATEstate
+import chemopy.AtomTypes as ATEstate
 
 
 def _CalculateEState(mol: Chem.Mol, skipH: bool = True) -> float:
@@ -130,12 +130,12 @@ def CalculateDiffMaxMinEState(mol: Chem.Mol) -> float:
 def CalculateEstateFingerprint(mol: Chem.Mol, implementation='rdkit') -> dict:
     """Calculate the sum of EState values for each EState atom type.
 
-    :param implementation: either rdkit or pychem. pychem rounds
+    :param implementation: either rdkit or chemopy. chemopy rounds
                            to the third decimal place but not rdkit.
     """
-    if implementation not in ['rdkit', 'pychem']:
-        raise ValueError('Implementation of AtomTypeEState must be either rdkit or pychem.')
-    if implementation == 'pychem':
+    if implementation not in ['rdkit', 'chemopy']:
+        raise ValueError('Implementation of AtomTypeEState must be either rdkit or chemopy.')
+    if implementation == 'chemopy':
         AT = ATEstate.GetAtomLabel(mol)
         Estate = _CalculateEState(mol)
         res = []
@@ -148,7 +148,7 @@ def CalculateEstateFingerprint(mol: Chem.Mol, implementation='rdkit') -> dict:
         for n, es in enumerate(res):
             ESresult[f'S{n+1}'] = round(es, 3)
         return ESresult
-    else:  # RDKit with more decimals than pychem
+    else:  # RDKit with more decimals than chemopy
         temp = ESFP.FingerprintMol(mol)
         res = {}
         for i, j in enumerate(temp[1]):

@@ -8,8 +8,8 @@ from typing import List, Tuple
 import numpy as np
 import scipy.linalg
 
-from pychem.AtomProperty import GetRelativeAtomicProperty
-from pychem.GeoOpt import _ReadCoordinates
+from chemopy.AtomProperty import GetRelativeAtomicProperty
+from chemopy.GeoOpt import _ReadCoordinates
 
 
 def GetAtomCoordinateMatrix(arc_file: str) -> Tuple[np.matrix, List[str]]:

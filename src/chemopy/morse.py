@@ -9,9 +9,9 @@ from typing import List
 
 from rdkit import Chem
 
-from pychem.AtomProperty import GetRelativeAtomicProperty
-from pychem.GeoOpt import _ReadCoordinates
-from pychem.utils import GetGeometricalDistanceMatrix, GetR
+from chemopy.AtomProperty import GetRelativeAtomicProperty
+from chemopy.GeoOpt import _ReadCoordinates
+from chemopy.utils import GetGeometricalDistanceMatrix, GetR
 
 # Parameter for RDF equation
 _beta = 100
@@ -20,7 +20,7 @@ _beta = 100
 def CalculateUnweightMoRSE(ChargeCoordinates: List[List[float]]) -> dict:
     """Calculate unweighted 3D MoRse descriptors.
 
-    :param ChargeCoordinates: Atomic coordinates and charges as read by pychem.GeoOpt._ReadCoordinates
+    :param ChargeCoordinates: Atomic coordinates and charges as read by chemopy.GeoOpt._ReadCoordinates
     """
     R = GetR(n=30)
     temp = []
@@ -43,7 +43,7 @@ def CalculateUnweightMoRSE(ChargeCoordinates: List[List[float]]) -> dict:
 def CalculateChargeMoRSE(ChargeCoordinates: List[List[float]]) -> dict:
     """Calculate 3D MoRse descriptors from atomic charge.
 
-    :param ChargeCoordinates: Atomic coordinates and charges as read by pychem.GeoOpt._ReadCoordinates
+    :param ChargeCoordinates: Atomic coordinates and charges as read by chemopy.GeoOpt._ReadCoordinates
     """
     R = GetR(n=30)
     temp = []
@@ -67,7 +67,7 @@ def CalculateChargeMoRSE(ChargeCoordinates: List[List[float]]) -> dict:
 def CalculateMassMoRSE(mol: Chem.Mol, ChargeCoordinates: List[List[float]]) -> dict:
     """Calculate 3D MoRse descriptors from atomic mass.
 
-    :param ChargeCoordinates: Atomic coordinates and charges as read by pychem.GeoOpt._ReadCoordinates
+    :param ChargeCoordinates: Atomic coordinates and charges as read by chemopy.GeoOpt._ReadCoordinates
     """
     R = GetR(n=30)
     temp = []
@@ -90,7 +90,7 @@ def CalculateMassMoRSE(mol: Chem.Mol, ChargeCoordinates: List[List[float]]) -> d
 def CalculateAtomicNumberMoRSE(mol: Chem.Mol, ChargeCoordinates: List[List[float]]) -> dict:
     """Calculate 3D MoRse descriptors from atomic number.
 
-    :param ChargeCoordinates: Atomic coordinates and charges as read by pychem.GeoOpt._ReadCoordinates
+    :param ChargeCoordinates: Atomic coordinates and charges as read by chemopy.GeoOpt._ReadCoordinates
     """
     R = GetR(n=30)
     temp = []
@@ -113,7 +113,7 @@ def CalculateAtomicNumberMoRSE(mol: Chem.Mol, ChargeCoordinates: List[List[float
 def CalculatePolarizabilityMoRSE(ChargeCoordinates: List[List[float]]) -> dict:
     """Calculate 3D MoRse descriptors from atomic polarizablity.
 
-    :param ChargeCoordinates: Atomic coordinates and charges as read by pychem.GeoOpt._ReadCoordinates
+    :param ChargeCoordinates: Atomic coordinates and charges as read by chemopy.GeoOpt._ReadCoordinates
     """
     R = GetR(n=30)
     temp = []
@@ -137,7 +137,7 @@ def CalculatePolarizabilityMoRSE(ChargeCoordinates: List[List[float]]) -> dict:
 def CalculateSandersonElectronegativityMoRSE(ChargeCoordinates: List[List[float]]) -> dict:
     """Calculate 3D MoRse descriptors from Sanderson electronegativity.
 
-    :param ChargeCoordinates: Atomic coordinates and charges as read by pychem.GeoOpt._ReadCoordinates
+    :param ChargeCoordinates: Atomic coordinates and charges as read by chemopy.GeoOpt._ReadCoordinates
     """
     R = GetR(n=30)
     temp = []
@@ -161,7 +161,7 @@ def CalculateSandersonElectronegativityMoRSE(ChargeCoordinates: List[List[float]
 def CalculateVDWVolumeMoRSE(ChargeCoordinates: List[List[float]]) -> dict:
     """Calculate 3D MoRse descriptors from van der Waals volume.
 
-    :param ChargeCoordinates: Atomic coordinates and charges as read by pychem.GeoOpt._ReadCoordinates
+    :param ChargeCoordinates: Atomic coordinates and charges as read by chemopy.GeoOpt._ReadCoordinates
     """
     R = GetR(n=30)
     temp = []

@@ -17,8 +17,8 @@ from rdkit import Chem
 from rdkit.Chem import Crippen
 from rdkit.Chem import MolSurf as MS
 
-from pychem.external import ExternalToolsParser
-from pychem.GeoOpt import Dispose
+from chemopy.external_parser import ExternalToolsParser
+from chemopy.GeoOpt import Dispose
 
 
 def CalculateMolLogP(mol: Chem.Mol) -> float:
@@ -119,7 +119,7 @@ def CalculateXlogP(mol: Union[Chem.Mol, List[Chem.Mol]]) -> Union[float, List[fl
         pybelmol = pybel.readstring('sdf', Chem.MolToMolBlock(mol_))
         outputmol.write(pybelmol)
     outputmol.close()
-    # Prepare pat to executable file
+    # Prepare path to executable file
     params = etp.tools['XLOGP']
     if params['path'].startswith('.'):
         path_prefix = os.path.realpath(os.path.join(os.path.dirname(__file__), params['path']))
@@ -190,7 +190,7 @@ def CalculateXlogS(mol: Union[Chem.Mol, List[Chem.Mol]]) -> Union[float, List[fl
         pybelmol = pybel.readstring('sdf', Chem.MolToMolBlock(mol_))
         outputmol.write(pybelmol)
     outputmol.close()
-    # Prepare pat to executable file
+    # Prepare path to executable file
     params = etp.tools['XLOGS']
     if params['path'].startswith('.'):
         path_prefix = os.path.realpath(os.path.join(os.path.dirname(__file__), params['path']))

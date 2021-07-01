@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 
-"""Utility functions for pychem."""
+"""Utility functions for chemopy."""
 
 import math
 import os

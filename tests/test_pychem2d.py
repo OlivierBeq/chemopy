@@ -1,17 +1,17 @@
 # -*- coding: utf-8 -*-
 
-"""Unit tests for pychem.PyChem2D."""
+"""Unit tests for chemopy.chemopy2D."""
 
 from unittest import TestCase
 
 from rdkit import Chem
 
-from pychem import PyChem2D
+from chemopy import PyChem2D
 from tests.constants import MOL_FILE
 
 
 class TestPyChem2D(TestCase):
-    """Tests for Pychem2D."""
+    """Tests for PyChem2D."""
 
     def setUp(self):
         """Create PyChem2D molecules for Docetaxel."""

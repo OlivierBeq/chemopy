@@ -8,7 +8,7 @@ import numpy
 from rdkit import Chem
 from rdkit.Chem import rdchem
 
-from pychem.topology import _HallKierDeltas
+from chemopy.topology import _HallKierDeltas
 
 periodicTable = rdchem.GetPeriodicTable()
 

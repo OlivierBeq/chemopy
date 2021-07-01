@@ -1,0 +1,3 @@
+include MOPAC.cfg
+include external.cfg
+recursive-include src *.*

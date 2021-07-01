@@ -1,13 +1,13 @@
 # -*- coding: utf-8 -*-
 
 
-"""Unitests for pychem."""
+"""Unitests for chemopy."""
 
 # import os
 # import shutil
 # import unittest
 
-# import pychem
+# import chemopy
 
 #
 # def dotest(smi):
@@ -16,11 +16,11 @@
 #     """
 #     #smi='CC(=O)OC1=CC=CC=C1C(=O)O'
 
-#     mol=pychem.getmol.ReadMolFromSmile(smi)
+#     mol=chemopy.getmol.ReadMolFromSmile(smi)
 
 #     print("********************************************************")
 #     try:
-#         temp=pychem.constitution.GetConstitutional(mol)
+#         temp=chemopy.constitution.GetConstitutional(mol)
 #     except:
 #         print("Constitutional module failed!!!")
 #         temp=[]
@@ -34,7 +34,7 @@
 
 #     print("********************************************************")
 #     try:
-#         temp=pychem.connectivity.GetConnectivity(mol)
+#         temp=chemopy.connectivity.GetConnectivity(mol)
 #     except:
 #         print("Connectivity module failed!!!")
 #         temp=[]
@@ -48,7 +48,7 @@
 #     print("********************************************************")
 
 #     try:
-#         temp=pychem.basak.Getbasak(mol)
+#         temp=chemopy.basak.Getbasak(mol)
 #     except:
 #         print("basak module failed!!!")
 #         temp=[]
@@ -62,7 +62,7 @@
 
 #     print("********************************************************")
 #     try:
-#         temp=pychem.bcut.GetBurden(mol)
+#         temp=chemopy.bcut.GetBurden(mol)
 #     except:
 #         print("bcut module failed!!!")
 #         temp=[]
@@ -76,7 +76,7 @@
 
 #     print("********************************************************")
 #     try:
-#         temp=pychem.charge.GetCharge(mol)
+#         temp=chemopy.charge.GetCharge(mol)
 #     except:
 #         print("charge module failed!!!")
 #         temp=[]
@@ -90,7 +90,7 @@
 
 #     print("********************************************************")
 #     try:
-#         temp=pychem.estate.GetEstate(mol)
+#         temp=chemopy.estate.GetEstate(mol)
 #     except:
 #         print("estate module failed!!!")
 #         temp=[]
@@ -104,7 +104,7 @@
 
 #     print("********************************************************")
 #     try:
-#         temp=pychem.kappa.GetKappa(mol)
+#         temp=chemopy.kappa.GetKappa(mol)
 #     except:
 #         print("Kappa module failed!!!")
 #         temp=[]
@@ -118,7 +118,7 @@
 
 #     print("********************************************************")
 #     try:
-#         temp=pychem.moe.GetMOE(mol)
+#         temp=chemopy.moe.GetMOE(mol)
 #     except:
 #         print("MOE module failed!!!")
 #         temp=[]
@@ -132,7 +132,7 @@
 
 #     print("********************************************************")
 #     try:
-#         temp=pychem.molproperty.GetMolecularProperty(mol)
+#         temp=chemopy.molproperty.GetMolecularProperty(mol)
 #     except:
 #         print("MolecularProperty module failed!!!")
 #         temp=[]
@@ -146,7 +146,7 @@
 
 #     print("********************************************************")
 #     try:
-#         temp=pychem.moran.GetMoranAuto(mol)
+#         temp=chemopy.moran.GetMoranAuto(mol)
 #     except:
 #         print("moran module failed!!!")
 #         temp=[]
@@ -160,7 +160,7 @@
 
 #     print("********************************************************")
 #     try:
-#         temp=pychem.moreaubroto.GetMoreauBrotoAuto(mol)
+#         temp=chemopy.moreaubroto.GetMoreauBrotoAuto(mol)
 #     except:
 #         print("moreaubroto module failed!!!")
 #         temp=[]
@@ -174,7 +174,7 @@
 
 #     print("********************************************************")
 #     try:
-#         temp=pychem.geary.GetGearyAuto(mol)
+#         temp=chemopy.geary.GetGearyAuto(mol)
 #     except:
 #         print("geary module failed!!!")
 #         temp=[]
@@ -188,7 +188,7 @@
 
 #     print("********************************************************")
 #     try:
-#         temp=pychem.topology.GetTopology(mol)
+#         temp=chemopy.topology.GetTopology(mol)
 #     except:
 #         print( "topology module failed!!!")
 #         temp=[]
@@ -202,12 +202,12 @@
 
 #     print("********************************************************")
 
-#     mol1=pychem.pybel.readstring('smi',smi)
+#     mol1=chemopy.pybel.readstring('smi',smi)
 
 
 #     try:
-#         dir = pychem.GetARCFile(mol1)
-#         temp=pychem.whim.GetWHIM(os.join(dir, 'temp'))
+#         dir = chemopy.GetARCFile(mol1)
+#         temp=chemopy.whim.GetWHIM(os.join(dir, 'temp'))
 #     except:
 #         print("whim module failed!!!")
 #         temp=[]
@@ -222,12 +222,12 @@
 
 #     print("********************************************************")
 
-#     mol1=pychem.pybel.readstring('smi',smi)
+#     mol1=chemopy.pybel.readstring('smi',smi)
 
 
 #     try:
-#         dir = pychem.GetARCFile(mol1)
-#         temp=pychem.cpsa.GetCPSA(dir)
+#         dir = chemopy.GetARCFile(mol1)
+#         temp=chemopy.cpsa.GetCPSA(dir)
 #     except:
 #         print("cpsa module failed!!!")
 #         temp=[]
@@ -241,12 +241,12 @@
 
 #     print("********************************************************")
 
-#     mol1=pychem.pybel.readstring('smi',smi)
+#     mol1=chemopy.pybel.readstring('smi',smi)
 
 
 #     try:
-#         dir = pychem.GetARCFile(mol1)
-#         temp=pychem.geometric.GetGeometric(mol1, dir)
+#         dir = chemopy.GetARCFile(mol1)
+#         temp=chemopy.geometric.GetGeometric(mol1, dir)
 #     except:
 #         print("geometric module failed!!!")
 #         temp=[]
@@ -261,12 +261,12 @@
 
 #     print("********************************************************")
 
-#     mol1=pychem.pybel.readstring('smi',smi)
+#     mol1=chemopy.pybel.readstring('smi',smi)
 
 
 #     try:
-#         dir = pychem.GetARCFile(mol1)
-#         temp=pychem.morse.GetMoRSE(mol1, dir)
+#         dir = chemopy.GetARCFile(mol1)
+#         temp=chemopy.morse.GetMoRSE(mol1, dir)
 #     except:
 #         print("morse module failed!!!")
 #         temp=[]
@@ -281,12 +281,12 @@
 
 #     print("********************************************************")
 
-#     mol1=pychem.pybel.readstring('smi',smi)
+#     mol1=chemopy.pybel.readstring('smi',smi)
 
 
 #     try:
-#         dir = pychem.GetARCFile(mol1)
-#         temp=pychem.rdf.GetRDF(mol1, dir)
+#         dir = chemopy.GetARCFile(mol1)
+#         temp=chemopy.rdf.GetRDF(mol1, dir)
 #     except:
 #         print("rdf module failed!!!")
 #         temp=[]
@@ -302,7 +302,7 @@
 #     print("********************************************************")
 
 #     try:
-#         temp=pychem.fingerprint.CalculateFP4Fingerprint(smi)
+#         temp=chemopy.fingerprint.CalculateFP4Fingerprint(smi)
 #     except:
 #         print(" CalculateFP4Fingerprint module failed!!!")
 #         temp=[]
@@ -317,7 +317,7 @@
 #     print("********************************************************")
 
 #     try:
-#         temp=pychem.fingerprint.CalculateMACCSFingerprint(mol)
+#         temp=chemopy.fingerprint.CalculateMACCSFingerprint(mol)
 #     except:
 #         print(" CalculateMACCSFingerprint module failed!!!")
 #         temp=[]
@@ -331,7 +331,7 @@
 #     print("********************************************************")
 
 #     try:
-#         temp=pychem.fingerprint.CalculateAtomPairsFingerprint(mol)
+#         temp=chemopy.fingerprint.CalculateAtomPairsFingerprint(mol)
 #     except:
 #         print(" CalculateAtomPairsFingerprint module failed!!!")
 #         temp=[]
@@ -344,7 +344,7 @@
 #     print("********************************************************")
 
 #     try:
-#         temp=pychem.fingerprint.CalculateDaylightFingerprint(mol)
+#         temp=chemopy.fingerprint.CalculateDaylightFingerprint(mol)
 #     except:
 #         print(" CalculateDaylightFingerprint module failed!!!")
 #         temp=[]
@@ -358,7 +358,7 @@
 #     print("********************************************************")
 
 #     try:
-#         temp=pychem.fingerprint.CalculateEstateFingerprint(mol)
+#         temp=chemopy.fingerprint.CalculateEstateFingerprint(mol)
 #     except:
 #         print(" CalculateEstateFingerprint module failed!!!")
 #         temp=[]
@@ -372,7 +372,7 @@
 #     print("********************************************************")
 
 #     try:
-#         temp=pychem.fingerprint.CalculateMorganFingerprint(mol)
+#         temp=chemopy.fingerprint.CalculateMorganFingerprint(mol)
 #     except:
 #         print("CalculateMorganFingerprint module failed!!!")
 #         temp=[]
@@ -385,7 +385,7 @@
 
 #     print("********************************************************")
 #     try:
-#         temp=pychem.fingerprint.CalculateTopologicalTorsionFingerprint(mol)
+#         temp=chemopy.fingerprint.CalculateTopologicalTorsionFingerprint(mol)
 #     except:
 #         print("CalculateTopologicalTorsionFingerprint module failed!!!")
 #         temp=[]
@@ -399,17 +399,17 @@
 #     print("********************************************************")
 
 #     try:
-#         from pychem.pychem import PyChem2d
-#         des1 = PyChem2d()
+#         from chemopy.chemopy import chemopy2d
+#         des1 = chemopy2d()
 #         des1.ReadMolFromSmile(smi)
 #         temp=des1.GetAllDescriptor()
 #     except:
-#         print("PyChem2d module failed!!!")
+#         print("chemopy2d module failed!!!")
 #         temp=[]
 
 #     if temp!=[]:
 #         #print(temp)
-#         print("PyChem2d module works!!!")
+#         print("chemopy2d module works!!!")
 #         print("The number of all 2D descriptors is", len(temp))
 #     print("********************************************************")
 
@@ -417,17 +417,17 @@
 #     print("********************************************************")
 
 #     try:
-#         from pychem.pychem import PyChem3d
-#         des1 = PyChem3d()
+#         from chemopy.chemopy import chemopy3d
+#         des1 = chemopy3d()
 #         des1.ReadMol(smi)
 #         temp=des1.GetAllDescriptor()
 #     except:
-#         print(" PyChem3d module failed!!!")
+#         print(" chemopy3d module failed!!!")
 #         temp=[]
 
 #     if temp!=[]:
 #         #print(temp)
-#         print("PyChem3d module works!!!")
+#         print("chemopy3d module works!!!")
 #         print("The number of all 3D descriptors is", len(temp))
 #     print("********************************************************")
 #     return 'OK'

@@ -12,8 +12,8 @@ from typing import List, Tuple
 import scipy
 from openbabel import pybel
 
-from pychem.GeoOpt import _ReadCoordinates
-from pychem.utils import GetAtomDistance, GetGeometricalDistanceMatrix
+from chemopy.GeoOpt import _ReadCoordinates
+from chemopy.utils import GetAtomDistance, GetGeometricalDistanceMatrix
 
 
 def _GetCenterOfMass(MassCoordinates: List[Tuple[float, Tuple[float, float, float]]]) -> Tuple[float, float, float]:
@@ -38,7 +38,7 @@ def _GetCenterOfMass(MassCoordinates: List[Tuple[float, Tuple[float, float, floa
 def _GetGeometricalCenter(ChargeCoordinates: List[List[float]]) -> Tuple[float, float, float]:
     """Get the geometrical center.
 
-    :param ChargeCoordinates: Atomic coordinates and charges as read by pychem.GeoOpt._ReadCoordinates
+    :param ChargeCoordinates: Atomic coordinates and charges as read by chemopy.GeoOpt._ReadCoordinates
     """
     res1 = []
     res2 = []
@@ -54,7 +54,7 @@ def _GetGeometricalCenter(ChargeCoordinates: List[List[float]]) -> Tuple[float, 
 def Calculate3DWienerWithH(ChargeCoordinates: List[List[float]]) -> float:
     """Calculate 3D Wiener index from geometrical distance matrix of a MOPAC optimized molecule (including Hs).
 
-    :param ChargeCoordinates: Atomic coordinates and charges as read by pychem.GeoOpt._ReadCoordinates
+    :param ChargeCoordinates: Atomic coordinates and charges as read by chemopy.GeoOpt._ReadCoordinates
     """
     temp = []
     for i in ChargeCoordinates:
@@ -66,7 +66,7 @@ def Calculate3DWienerWithH(ChargeCoordinates: List[List[float]]) -> float:
 def Calculate3DWienerWithoutH(ChargeCoordinates: List[List[float]]) -> float:
     """Calculate 3D Wiener index from geometrical distance matrix of a MOPAC optimized molecule (not including Hs).
 
-    :param ChargeCoordinates: Atomic coordinates and charges as read by pychem.GeoOpt._ReadCoordinates
+    :param ChargeCoordinates: Atomic coordinates and charges as read by chemopy.GeoOpt._ReadCoordinates
     """
     temp = []
     for i in ChargeCoordinates:
@@ -89,7 +89,7 @@ def CalculatePetitjean3DIndex(ChargeCoordinates: List[List[float]]) -> float:
     geometric eccentricity being the longest geometric distance
     from the considered atom to any other atom in the molecule.
 
-    :param ChargeCoordinates: Atomic coordinates and charges as read by pychem.GeoOpt._ReadCoordinates
+    :param ChargeCoordinates: Atomic coordinates and charges as read by chemopy.GeoOpt._ReadCoordinates
     """
     temp = []
     for i in ChargeCoordinates:
@@ -102,7 +102,7 @@ def CalculatePetitjean3DIndex(ChargeCoordinates: List[List[float]]) -> float:
 def CalculateGeometricalDiameter(ChargeCoordinates: List[List[float]]) -> float:
     """Calculate the geometrical diameter.
 
-    :param ChargeCoordinates: Atomic coordinates and charges as read by pychem.GeoOpt._ReadCoordinates
+    :param ChargeCoordinates: Atomic coordinates and charges as read by chemopy.GeoOpt._ReadCoordinates
     """
     temp = []
     for i in ChargeCoordinates:
@@ -115,7 +115,7 @@ def CalculateGeometricalDiameter(ChargeCoordinates: List[List[float]]) -> float:
 def CalculateTopoElectronic(ChargeCoordinates: List[List[float]]) -> float:
     """Calculate Topographic electronic descriptors.
 
-    :param ChargeCoordinates: Atomic coordinates and charges as read by pychem.GeoOpt._ReadCoordinates
+    :param ChargeCoordinates: Atomic coordinates and charges as read by chemopy.GeoOpt._ReadCoordinates
     """
     temp, charges = [], []
     for i in ChargeCoordinates:
@@ -134,7 +134,7 @@ def CalculateGravitational3D1(mol: pybel.Molecule, ChargeCoordinates: List[List[
     """Calculate Gravitational 3D index from all atoms.
 
     :param mol: molecule
-    :param ChargeCoordinates: Atomic coordinates and charges as read by pychem.GeoOpt._ReadCoordinates
+    :param ChargeCoordinates: Atomic coordinates and charges as read by chemopy.GeoOpt._ReadCoordinates
     """
     mol.removeh()
     mol.addh()
@@ -155,7 +155,7 @@ def CalculateGravitational3D2(mol: pybel.Molecule, ChargeCoordinates: List[List[
 
     Katritzky, A.R. et al., J.Phys.Chem. 1996, 100, 10400-10407]
     :param mol: molecule
-    :param ChargeCoordinates: Atomic coordinates and charges as read by pychem.GeoOpt._ReadCoordinates
+    :param ChargeCoordinates: Atomic coordinates and charges as read by chemopy.GeoOpt._ReadCoordinates
     """
     raise NotImplementedError('Needs modification: calculated only on bonded atoms.')
     mol.removeh()
@@ -176,7 +176,7 @@ def CalculateRadiusofGyration(mol: pybel.Molecule, ChargeCoordinates: List[List[
     """Calculate Radius of gyration.
 
     :param mol: molecule
-    :param ChargeCoordinates: Atomic coordinates and charges as read by pychem.GeoOpt._ReadCoordinates
+    :param ChargeCoordinates: Atomic coordinates and charges as read by chemopy.GeoOpt._ReadCoordinates
     """
     mol.addh()
     temp = []
@@ -195,7 +195,7 @@ def GetInertiaMatrix(mol: pybel.Molecule, ChargeCoordinates: List[List[float]]) 
     """Get Inertia matrix based on atomic mass and optimized coordinates.
 
     :param mol: molecule
-    :param ChargeCoordinates: Atomic coordinates and charges as read by pychem.GeoOpt._ReadCoordinates
+    :param ChargeCoordinates: Atomic coordinates and charges as read by chemopy.GeoOpt._ReadCoordinates
     """
     mol.removeh()
     mol.addh()
@@ -234,7 +234,7 @@ def CalculatePrincipalMomentofInertia(mol: pybel.Molecule, ChargeCoordinates: Li
 
     derived from ADAPT developed by Jurs.
     :param mol: molecule
-    :param ChargeCoordinates: Atomic coordinates and charges as read by pychem.GeoOpt._ReadCoordinates
+    :param ChargeCoordinates: Atomic coordinates and charges as read by chemopy.GeoOpt._ReadCoordinates
     """
     InertiaMatrix = GetInertiaMatrix(mol, ChargeCoordinates)
     ma = scipy.mean(InertiaMatrix, axis=1)
@@ -254,7 +254,7 @@ def CalculateRatioPMI(mol: pybel.Molecule, ChargeCoordinates: List[List[float]])
 
     derived from ADAPT developed by Jurs.
     :param mol: molecule
-    :param ChargeCoordinates: Atomic coordinates and charges as read by pychem.GeoOpt._ReadCoordinates
+    :param ChargeCoordinates: Atomic coordinates and charges as read by chemopy.GeoOpt._ReadCoordinates
     """
     temp = CalculatePrincipalMomentofInertia(mol, ChargeCoordinates)
     res = {}
@@ -267,7 +267,7 @@ def CalculateRatioPMI(mol: pybel.Molecule, ChargeCoordinates: List[List[float]])
 def CalculateHarary3D(ChargeCoordinates: List[List[float]]) -> float:
     """Calculate 3D-Harary index as the sum of all the reciprocal geometric distances.
 
-    :param ChargeCoordinates: Atomic coordinates and charges as read by pychem.GeoOpt._ReadCoordinates
+    :param ChargeCoordinates: Atomic coordinates and charges as read by chemopy.GeoOpt._ReadCoordinates
     """
     temp = []
     for i in ChargeCoordinates:
@@ -289,7 +289,7 @@ def CalculateAverageGeometricalDistanceDegree(ChargeCoordinates: List[List[float
     """Calculate the average geometric distance degree (AGDD).
 
     This is the ratio between the sum of all geometric distance degrees and the atoms.
-    :param ChargeCoordinates: Atomic coordinates and charges as read by pychem.GeoOpt._ReadCoordinates
+    :param ChargeCoordinates: Atomic coordinates and charges as read by chemopy.GeoOpt._ReadCoordinates
     """
     temp = []
     for i in ChargeCoordinates:
@@ -304,7 +304,7 @@ def CalculateAbsEigenvalueSumOnGeometricMatrix(ChargeCoordinates: List[List[floa
     """Calculate the absolute eigenvalue sum on geometry matrix (SEig).
 
     This is the sum of the absolute eigenvalues of the geometry matrix.
-    :param ChargeCoordinates: Atomic coordinates and charges as read by pychem.GeoOpt._ReadCoordinates
+    :param ChargeCoordinates: Atomic coordinates and charges as read by chemopy.GeoOpt._ReadCoordinates
     """
     temp = []
     for i in ChargeCoordinates:
@@ -324,7 +324,7 @@ def CalculateSPANR(mol: pybel.Molecule, ChargeCoordinates: List[List[float]]) ->
     Computational Chemistry - Vol. 9, K.B. Lipkowitz, D. Boyd (Eds.),
     VCH Publishers, New York (NY), pp. 191-253, 1991.
     :param mol: molecule
-    :param ChargeCoordinates: Atomic coordinates and charges as read by pychem.GeoOpt._ReadCoordinates
+    :param ChargeCoordinates: Atomic coordinates and charges as read by chemopy.GeoOpt._ReadCoordinates
     """
     mol.removeh()
     mol.addh()
@@ -343,7 +343,7 @@ def CalculateAverageSPANR(mol: pybel.Molecule, ChargeCoordinates: List[List[floa
 
     This is the root square of the ratio of SPAN over the number of atoms.
     :param mol: molecule
-    :param ChargeCoordinates: Atomic coordinates and charges as read by pychem.GeoOpt._ReadCoordinates
+    :param ChargeCoordinates: Atomic coordinates and charges as read by chemopy.GeoOpt._ReadCoordinates
     """
     mol.removeh()
     mol.addh()
@@ -365,7 +365,7 @@ def CalculateMolecularEccentricity(mol: pybel.Molecule, ChargeCoordinates: List[
     in Computational Chemistry - Vol. 9, K.B. Lipkowitz, D. Boyd (Eds.),
     VCH Publishers, New York (NY), pp. 191-253, 1991.
     :param mol: molecule
-    :param ChargeCoordinates: Atomic coordinates and charges as read by pychem.GeoOpt._ReadCoordinates
+    :param ChargeCoordinates: Atomic coordinates and charges as read by chemopy.GeoOpt._ReadCoordinates
     """
     InertiaMatrix = GetInertiaMatrix(mol, ChargeCoordinates)
     u, s, v = scipy.linalg.svd(InertiaMatrix)

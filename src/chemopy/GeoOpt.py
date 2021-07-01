@@ -15,10 +15,10 @@ from openbabel import pybel
 from rdkit import Chem
 from rdkit.Chem import rdDistGeom
 
-from pychem import vector3d
-from pychem.external import ExternalToolsParser
-from pychem.utils import (GetFileInDirFromExt, GetLastestCreatedFile,
-                          IsInSubdirectoryTree)
+from chemopy import vector3d
+from chemopy.external_parser import ExternalToolsParser
+from chemopy.utils import (GetFileInDirFromExt, GetLastestCreatedFile,
+                           IsInSubdirectoryTree)
 
 MOPAC_CONFIG = {}
 
@@ -109,7 +109,10 @@ def _ReadCoordinates(arc_file):
     return res
 
 
-def FormatConversion(inputmol: Chem.Mol, method='AM1', version='7.1', outfile=None, outdir=None, sdf=False) -> Tuple[str, str]:
+def FormatConversion(inputmol: Chem.Mol,
+                     method='AM1', version='7.1',
+                     outfile=None, outdir=None, sdf=False,
+                     ) -> Tuple[str, str]:
     """Prepare a molecule to be optimized by MOPAC.
 
     The preparation goes as follows:

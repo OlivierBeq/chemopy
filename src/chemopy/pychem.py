@@ -8,17 +8,17 @@ from typing import Dict, Tuple
 from openbabel import pybel
 from rdkit import Chem
 
-from pychem import (basak, bcut, charge, connectivity, constitution, cpsa,
-                    estate, fingerprint, geary, geometric, getmol, kappa, moe,
-                    molproperty, moran, moreaubroto, morse, quanchem, rdf,
-                    topology, whim)
-from pychem.GeoOpt import Dispose, GetARCFile
+from chemopy import (basak, bcut, charge, connectivity, constitution, cpsa,
+                     estate, fingerprint, geary, geometric, getmol, kappa, moe,
+                     molproperty, moran, moreaubroto, morse, quanchem, rdf,
+                     topology, whim)
+from chemopy.GeoOpt import Dispose, GetARCFile
 
 FingerprintName = list(fingerprint._FingerprintFuncs.keys())
 # ['topological','Estate','FP4','atompairs','torsions',
 #                      'morgan','MACCS']
 
-# TODO: 1) merge both 2D and 3D in a unique class keeping PyChem3D's obmol and rdmol duality
+# TODO: 1) merge both 2D and 3D in a unique class keeping chemopy3D's obmol and rdmol duality
 #       2) create a MOPAC opti method that generates an ARC file
 #       3) force the use of with to dispose ARC file
 
@@ -158,17 +158,16 @@ class PyChem2D:
         for FPName in FingerprintName:
             temp = fingerprint._FingerprintFuncs[FPName]
             if FPName == 'morgan':
-                size, bits, _ = temp(self.mol, radius)
+                bits = temp(self.mol, radius)
             else:
-                size, bits, _ = temp(self.mol)
-            fps.update({FPName: (size, bits)})
-        fps.update(estate.GetEstateFingerprints(self.mol))
+                bits = temp(self.mol)
+            fps.update({FPName: bits})
         return fps
 
     def GetFingerprint(self, FPName: str = 'topological') -> Tuple[int, dict]:
         """Calculate molecular fingerprint.
 
-        :param FPName: fingerprint name as in pychem.FingerprintName
+        :param FPName: fingerprint name as in chemopy.FingerprintName
         """
         if FPName in FingerprintName:
             size, bits, _ = fingerprint._FingerprintFuncs[FPName](self.mol)
@@ -375,7 +374,7 @@ class PyChem3D:
 
 
 # if __name__ == "__main__":
-#     drugclass = PyChem2D()
+#     drugclass = chemopy2D()
 #     drugclass.ReadMolFromSmile("CCC1(c2ccccc2)C(=O)N(C)C(=N1)O")
 #     print(drugclass.GetKappa())
 #     print(len(drugclass.GetTopology()))
@@ -398,7 +397,7 @@ class PyChem3D:
 #     print(res)
 
 #     ###############################
-#     drug = PyChem3D()
+#     drug = chemopy3D()
 #     molsmi = drug.GetMolFromDrugbank("DB00133")
 #     print(molsmi)
 #     drug.ReadMol(molsmi, 'smi')

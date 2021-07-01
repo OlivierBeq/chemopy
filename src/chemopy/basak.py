@@ -9,7 +9,7 @@ import copy
 import numpy
 from rdkit import Chem
 
-from pychem.topology import _CalculateEntropy
+from chemopy.topology import _CalculateEntropy
 
 
 def CalculateBasakIC0(mol):

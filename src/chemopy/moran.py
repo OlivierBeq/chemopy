@@ -6,7 +6,7 @@
 import numpy
 from rdkit import Chem
 
-from pychem.AtomProperty import GetRelativeAtomicProperty
+from chemopy.AtomProperty import GetRelativeAtomicProperty
 
 
 def _CalculateMoranAutocorrelation(mol: Chem.Mol, lag: int = 1, propertylabel: str = 'm') -> float:
