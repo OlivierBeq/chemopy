@@ -1,17 +1,3 @@
-# External applications not shareable by license
-external/*
-!external/BlueDesc
-
-external/*
-!external/Mold2
-
-external/*
-!external/XLOGP3
-
-external/*
-!external/BlueDesc
-
-
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
@@ -95,6 +81,12 @@ target/
 profile_default/
 ipython_config.py
 
+# PyCharm stuff:
+.idea/
+
+# VSCode stuff:
+.vscode/
+
 # pyenv
 .python-version
 
@@ -141,3 +133,8 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+
+# Except PaDEL & ePaDEL required libs
+!src/PaDEL_pywrapper/PaDEL-Descriptor/lib/
+!java/lib
+!java/src/*/.idea

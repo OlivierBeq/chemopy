@@ -8,12 +8,12 @@ import os
 from pathlib import Path
 from typing import List
 
-import scipy
+import numpy as np
 from openbabel import openbabel, pybel
 from rdkit import Chem
 
 
-def GetR(n: int) -> List[float]:
+def get_r(n: int) -> List[float]:
     """Calcuate the parameters R of the RDF equation."""
     R = []
     for i in range(2, n + 2):
@@ -21,25 +21,25 @@ def GetR(n: int) -> List[float]:
     return R
 
 
-def GetAtomDistance(x: List[float], y: List[float]) -> float:
+def get_atom_distance(x: List[float], y: List[float]) -> float:
     """Calculate Euclidean distance between two atomic coordinates."""
     temp = [math.pow(x[0] - y[0], 2), math.pow(x[1] - y[1], 2), math.pow(x[2] - y[2], 2)]
     res = math.sqrt(sum(temp))
     return res
 
 
-def GetGeometricalDistanceMatrix(CoordinateList: List[List[float]]) -> scipy.matrix:
+def get_geometrical_distance_matrix(CoordinateList: List[List[float]]) -> np.array:
     """Calculate distance matrix from coordinate list."""
     NAtom = len(CoordinateList)
-    DistanceMatrix = scipy.zeros((NAtom, NAtom))
+    DistanceMatrix = np.zeros((NAtom, NAtom))
     for i in range(NAtom - 1):
         for j in range(i + 1, NAtom):
-            DistanceMatrix[i, j] = GetAtomDistance(CoordinateList[i], CoordinateList[j])
+            DistanceMatrix[i, j] = get_atom_distance(CoordinateList[i], CoordinateList[j])
             DistanceMatrix[j, i] = DistanceMatrix[i, j]
     return DistanceMatrix
 
 
-def IsInSubdirectoryTree(path: str, parent_path: str) -> bool:
+def is_in_subdirectory_tree(path: str, parent_path: str) -> bool:
     """Test if a path is in the subdirectory tree of another.
 
     :param path: the path to be tested
@@ -55,7 +55,7 @@ def IsInSubdirectoryTree(path: str, parent_path: str) -> bool:
     return len(relpath) == 0
 
 
-def GetFileInDirFromExt(dirpath: str, ext: List[str]) -> List[str]:
+def get_file_in_dir_from_ext(dirpath: str, ext: str) -> List[str]:
     """Identify the files in the current directory based on their extension.
 
     Does not support recursuve search of files.
@@ -68,17 +68,17 @@ def GetFileInDirFromExt(dirpath: str, ext: List[str]) -> List[str]:
             if os.path.splitext(x)[1].lower() == ext.lower()]
 
 
-def AreAllPathsAbsolute(paths: List[str]) -> bool:
+def are_all_paths_absolute(paths: List[str]) -> bool:
     """Verify all paths are absolute."""
     return all(map(os.path.isabs, paths))
 
 
-def AreAllPathsRelative(paths: List[str]) -> bool:
+def are_all_paths_relative(paths: List[str]) -> bool:
     """Verify all paths are relative."""
     return all(map(lambda x: not os.path.isabs(x), paths))
 
 
-def GetLastestCreatedFile(dirpath: str = None, filepaths: List[str] = None, strict: bool = True) -> str:
+def get_lastest_created_file(dirpath: str = None, filepaths: List[str] = None, strict: bool = True) -> str:
     """Get the file that was created last.
 
     Search can either be executed on an entire directory or a
@@ -94,7 +94,7 @@ def GetLastestCreatedFile(dirpath: str = None, filepaths: List[str] = None, stri
     if (dirpath, filepaths) == (None, None):
         raise ValueError('Either dirpath or filepaths must be provided.')
     if dirpath is not None and filepaths is not None:
-        if not AreAllPathsRelative(filepaths):
+        if not are_all_paths_relative(filepaths):
             raise ValueError('filepaths must not be absolute when dirpath provided.')
         if not os.path.isdir(dirpath):
             raise NotADirectoryError(f'{dirpath} does not exist.')
@@ -116,7 +116,7 @@ def GetLastestCreatedFile(dirpath: str = None, filepaths: List[str] = None, stri
                 files.append((full_path, Path(full_path).stat().st_ctime_ns))
         return sorted(files, key=lambda x: x[1], reverse=True)[0][0]
     else:
-        if not AreAllPathsAbsolute(filepaths):
+        if not are_all_paths_absolute(filepaths):
             raise ValueError('filepaths must be absolute when dirpath is not provided.')
         files = []
         for file_ in filepaths:
@@ -199,3 +199,19 @@ def pybel_to_rdkit_mol(mol: pybel.Molecule) -> Chem.Mol:
     :param mol: OpenBabel.Pybel molecule
     """
     return openbabel_to_rdkit_mol(mol.OBMol)
+
+def needs_hydrogens(mol: Chem.Mol) -> bool:
+    """Return if the molecule lacks hydrogen atoms or not.
+
+    :param mol: RDKit Molecule
+    :return: True if the molecule lacks hydrogens.
+    """
+    for atom in mol.GetAtoms():
+        nHNbrs = 0
+        for nbr in atom.GetNeighbors():
+            if nbr.GetAtomicNum() == 1:
+                nHNbrs += 1
+        noNeighbors = False
+        if atom.GetTotalNumHs(noNeighbors) > nHNbrs:
+            return True
+    return False

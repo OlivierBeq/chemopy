@@ -194,7 +194,7 @@ class Vector3D:
 
     def to_numpy_row(self):
         """Transform to a numpy matrix row."""
-        return np.matrix([self.x, self.y, self.z], dtype=float)
+        return np.array([self.x, self.y, self.z], dtype=float)
 
     def to_numpy_col(self):
         """Transform to a numpy matrix column."""
@@ -286,9 +286,9 @@ def pos_dihedral(p1, p2, p3, p4):
     return vec_dihedral(p1 - p2, p2 - p3, p4 - p3)
 
 
-def RotatedPos(theta, anchor, center, pos):
+def rotated_pos(theta, anchor, center, pos):
     """Rotate the position by theta around the center."""
-    return Rotation(center - anchor, theta, center).transform_vec(pos)
+    return rotation(center - anchor, theta, center).transform_vec(pos)
 
 
 # def ProjectedPos(length, angle, dihedral, p1, p2, p3):
@@ -302,12 +302,12 @@ def RotatedPos(theta, anchor, center, pos):
 
 
 class Matrix3D(np.matrix):
-    """Object to manipulate three dimensional matrices.
+    """Object to manipulate three-dimensional matrices.
 
     Wrapper around numpy matrix object with shape (4, 4).
     """
 
-    def __new__(cls, values: Iterable[float] = None, order='C') -> None:
+    def __new__(cls, values: Iterable[float] = None, order='C') -> Matrix3D:
         """Create a new Matrix3D object.
 
         :param values: values of the matrix
@@ -321,7 +321,7 @@ class Matrix3D(np.matrix):
             len_ = len(list(values))
             if not len_ == 16:
                 raise ValueError(f'Matrix3D cannot be instanciated with {len_} values')
-            self = np.matrix(values, dtype=float).reshape((4, 4), order=order)
+            self = np.array(values, dtype=float).reshape((4, 4), order=order)
         return self.view(cls)
 
     def transform_vector(self, vector: Vector3D) -> Vector3D:
@@ -332,7 +332,7 @@ class Matrix3D(np.matrix):
         return Vector3D.from_numpy(self[:3, :3].T * vector.to_numpy_col() + self[3, :3].T)
 
 
-def RotationAtOrigin(axis, theta):
+def rotation_at_origin(axis, theta):
     """Create a matrix for a rotation around the origin.
 
     :param axis: axis around which the rotation should be performed
@@ -358,7 +358,7 @@ def RotationAtOrigin(axis, theta):
     return m
 
 
-def Translation(vector):
+def translation(vector):
     """Create a translation matrix.
 
     :param vector: vector of translation
@@ -368,26 +368,26 @@ def Translation(vector):
     return m
 
 
-def Rotation(axis, theta, center):
+def rotation(axis, theta, center):
     """Create the matrix to rotate around an axis at center."""
-    rot = RotationAtOrigin(axis, theta)
-    trans = Translation(center - rot.transform_vec(center))
+    rot = rotation_at_origin(axis, theta)
+    trans = translation(center - rot.transform_vec(center))
     return trans * rot
 
 
-def Superposition3(ref1, ref2, ref3, mov1, mov2, mov3):
+def superposition3(ref1, ref2, ref3, mov1, mov2, mov3):
     """Superimpose."""
     mov_diff = mov2 - mov1
     ref_diff = ref2 - ref1
 
     m1 = Matrix3D()
     if math.fabs(vec_angle(mov_diff, ref_diff)) < SMALL:
-        m1 = Translation(ref1 - mov1)
+        m1 = translation(ref1 - mov1)
     else:
         axis = mov_diff.cross(ref_diff)
         torsion = vec_dihedral(ref_diff, axis, mov_diff)
-        rot = RotationAtOrigin(axis, torsion)
-        trans = Translation(ref2 - rot.transform_vec(mov2))
+        rot = rotation_at_origin(axis, torsion)
+        trans = translation(ref2 - rot.transform_vec(mov2))
         m1 = trans * rot
 
     mov_diff = ref2 - m1.transform_vec(mov3)
@@ -399,30 +399,30 @@ def Superposition3(ref1, ref2, ref3, mov1, mov2, mov3):
     else:
         axis = ref2 - ref1
         torsion = vec_dihedral(ref_diff, axis, mov_diff)
-        m2 = RotationAtOrigin(axis, torsion)
-        m3 = Translation(ref2 - m2.transform_vec(ref2))
+        m2 = rotation_at_origin(axis, torsion)
+        m3 = translation(ref2 - m2.transform_vec(ref2))
         m = m3 * m2 * m1
 
     return m
 
 
-def RandomVec():
+def random_vec():
     """Get a random vector."""
     return Vector3D(random.uniform(-100, 100),  # noqa: S311
                     random.uniform(-100, 100),  # noqa: S311
                     random.uniform(-100, 100))  # noqa: S311
 
 
-def RandomOriginRotation():
+def random_origin_rotation():
     """Get a random rotation around the origin."""
-    axis = RandomVec()
+    axis = random_vec()
     angle = random.uniform(-math.pi / 2, math.pi / 2)  # noqa: S311
-    return RotationAtOrigin(axis, angle)
+    return rotation_at_origin(axis, angle)
 
 
-def RandomTransform():
+def random_transform():
     """Get a random transformation matrix."""
-    axis = RandomVec()
+    axis = random_vec()
     angle = random.uniform(-math.pi / 2, math.pi / 2)  # noqa: S311
-    center = RandomVec()
-    return Rotation(axis, angle, center)
+    center = random_vec()
+    return rotation(axis, angle, center)

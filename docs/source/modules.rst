@@ -1,7 +1,7 @@
-pychem
+ChemoPy
 ======
 
 .. toctree::
    :maxdepth: 4
 
-   pychem
+   chemopy

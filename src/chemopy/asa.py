@@ -14,13 +14,11 @@ of Protein Atoms. Lysozyme and Insulin." JMB (1973) 79:351-371.
 import math
 from typing import List
 
-from chemopy.GeoOpt import Atom
-from chemopy.vector3d import Vector3D, pos_distance, pos_distance_sq
-
-# TODO: change list[x, y, z] to Vector3D
+from .geo_opt import Atom
+from .vector3d import Vector3D, pos_distance, pos_distance_sq
 
 
-def generate_sphere_points(n: int) -> List[float]:
+def generate_sphere_points(n: int) -> List[Vector3D]:
     """Distribute points on a sphere using the Golden Section Spiral algorithm.
 
     :param n: number of points to generate along the sphere surface.
@@ -32,7 +30,8 @@ def generate_sphere_points(n: int) -> List[float]:
         y = k * offset - 1 + (offset / 2)
         r = math.sqrt(1 - y * y)
         phi = k * inc
-        points.append([math.cos(phi) * r, y, math.sin(phi) * r])
+        points.append(Vector3D(math.cos(phi) * r, y, math.sin(phi) * r))
+        # points.append([math.cos(phi) * r, y, math.sin(phi) * r])
     return points
 
 
@@ -50,7 +49,7 @@ def find_neighbor_indices(atoms: List[Atom], probe: float, k: int) -> List[int]:
     """
     neighbor_indices = []
     atom_k = atoms[k]
-    radius = atom_k.radius + probe + probe
+    radius = atom_k.radius + 2 * probe
     indices = list(range(k))
     indices.extend(range(k + 1, len(atoms)))
     for i in indices:
@@ -85,9 +84,9 @@ def calculate_asa(atoms: List[Atom], probe: float, n_sphere_point: int = 960) ->
         for point in sphere_points:
             is_accessible = True
 
-            test_point.x = point[0] * radius + atom_i.pos.x
-            test_point.y = point[1] * radius + atom_i.pos.y
-            test_point.z = point[2] * radius + atom_i.pos.z
+            test_point.x = point.x * radius + atom_i.pos.x
+            test_point.y = point.y * radius + atom_i.pos.y
+            test_point.z = point.z * radius + atom_i.pos.z
 
             cycled_indices = list(range(j_closest_neighbor, n_neighbor))
             cycled_indices.extend(range(j_closest_neighbor))
@@ -106,8 +105,3 @@ def calculate_asa(atoms: List[Atom], probe: float, n_sphere_point: int = 960) ->
         area = const * n_accessible_point * radius * radius
         areas.append(area)
     return areas
-
-
-# if __name__ == "__main__":
-#    main()
-#    print(generate_sphere_points(10))

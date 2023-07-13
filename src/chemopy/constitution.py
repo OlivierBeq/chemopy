@@ -7,253 +7,246 @@ from rdkit import Chem
 from rdkit.Chem import Lipinski as LPK
 
 
-def CalculateHeavyMolWeight(mol: Chem.Mol) -> float:
-    """Calculate molecular weight of heavy atoms."""
-    MolWeight = 0
-    for atom in mol.GetAtoms():
-        if atom.GetAtomicNum() != 1:
+class Constitution:
+    """Constitutional descriptors."""
+
+    @staticmethod
+    def calculate_heavy_mol_weight(mol: Chem.Mol) -> float:
+        """calculate_ molecular weight of heavy atoms."""
+        MolWeight = 0
+        for atom in mol.GetAtoms():
+            if atom.GetAtomicNum() != 1:
+                MolWeight += atom.GetMass()
+        return MolWeight
+
+    @staticmethod
+    def calculate_average_mol_weight(mol: Chem.Mol) -> float:
+        """calculate_ average molecular weight of heavy atoms."""
+        MolWeight = 0
+        for atom in mol.GetAtoms():
             MolWeight += atom.GetMass()
-    return MolWeight
-
-
-def CalculateAverageMolWeight(mol: Chem.Mol) -> float:
-    """Calculate average molecular weight of heavy atoms."""
-    MolWeight = 0
-    for atom in mol.GetAtoms():
-        MolWeight += atom.GetMass()
-    return MolWeight / mol.GetNumAtoms()
-
-
-def CalculateHydrogenNumber(mol: Chem.Mol) -> float:
-    """Calculate number of Hydrogens."""
-    i = 0
-    Hmol = Chem.AddHs(mol)
-    for atom in Hmol.GetAtoms():
-        if atom.GetAtomicNum() == 1:
-            i += 1
-    return i
-
-
-def CalculateHalogenNumber(mol: Chem.Mol) -> float:
-    """Calculate number of Halogens."""
-    i = 0
-    for atom in mol.GetAtoms():
-        if atom.GetAtomicNum() in [9, 17, 35, 53]:
-            i += 1
-    return i
-
-
-def CalculateHeteroNumber(mol: Chem.Mol) -> float:
-    """Calculate number of Heteroatoms."""
-    i = 0
-    for atom in mol.GetAtoms():
-        if atom.GetAtomicNum() not in [1, 6]:
-            i += 1
-    return mol.GetNumAtoms() - i
-
-
-def CalculateHeavyAtomNumber(mol: Chem.Mol) -> float:
-    """Calculate number of Heavy atoms."""
-    return mol.GetNumHeavyAtoms()
-
-
-def _CalculateElementNumber(mol: Chem.Mol, AtomicNumber=6) -> float:
-    """Calculate number of atoms with specified element."""
-    i = 0
-    for atom in mol.GetAtoms():
-        if atom.GetAtomicNum() == AtomicNumber:
-            i += 1
-    return i
-
-
-def CalculateFluorinNumber(mol: Chem.Mol) -> float:
-    """Calculate number of Fluorine atoms."""
-    return _CalculateElementNumber(mol, AtomicNumber=9)
-
-
-def CalculateChlorinNumber(mol: Chem.Mol) -> float:
-    """Calculate number of Fluorine atoms."""
-    return _CalculateElementNumber(mol, AtomicNumber=17)
-
-
-def CalculateBromineNumber(mol: Chem.Mol) -> float:
-    """Calculate number of Bromine atoms."""
-    return _CalculateElementNumber(mol, AtomicNumber=35)
-
-
-def CalculateIodineNumber(mol: Chem.Mol) -> float:
-    """Calculate number of Iodine atoms."""
-    return _CalculateElementNumber(mol, AtomicNumber=53)
-
-
-def CalculateCarbonNumber(mol: Chem.Mol) -> float:
-    """Calculate number of Carbon atoms."""
-    return _CalculateElementNumber(mol, AtomicNumber=6)
-
-
-def CalculatePhosphorNumber(mol: Chem.Mol) -> float:
-    """Calcualtion number of Phosphor atoms."""
-    return _CalculateElementNumber(mol, AtomicNumber=15)
-
-
-def CalculateSulfurNumber(mol: Chem.Mol) -> float:
-    """Calculate number of Sulfur atoms."""
-    return _CalculateElementNumber(mol, AtomicNumber=16)
-
-
-def CalculateOxygenNumber(mol: Chem.Mol) -> float:
-    """Calculate number of Oxygen atoms."""
-    return _CalculateElementNumber(mol, AtomicNumber=8)
-
-
-def CalculateNitrogenNumber(mol: Chem.Mol) -> float:
-    """Calculate number of Nitrogen atoms."""
-    return _CalculateElementNumber(mol, AtomicNumber=7)
-
-
-def CalculateRingNumber(mol: Chem.Mol) -> float:
-    """Calculate number of rings."""
-    return Chem.GetSSSR(mol)
-
-
-def CalculateRotationBondNumber(mol: Chem.Mol) -> float:
-    """Calculate number of rotatable bonds."""
-    return LPK.NumRotatableBonds(mol)
-
-
-def CalculateHdonorNumber(mol: Chem.Mol) -> float:
-    """Calculate number of Hydrongen bond donors."""
-    return LPK.NumHDonors(mol)
-
-
-def CalculateHacceptorNumber(mol: Chem.Mol) -> float:
-    """Calculate number of Hydrogen bond acceptors."""
-    return LPK.NumHAcceptors(mol)
-
-
-def CalculateSingleBondNumber(mol: Chem.Mol) -> float:
-    """Calculate number of single bonds."""
-    i = 0
-    for bond in mol.GetBonds():
-        if bond.GetBondType().name == 'SINGLE':
-            i += 1
-    return i
-
-
-def CalculateDoubleBondNumber(mol: Chem.Mol) -> float:
-    """Calculate number of double bonds."""
-    i = 0
-    for bond in mol.GetBonds():
-        if bond.GetBondType().name == 'DOUBLE':
-            i += 1
-    return i
-
-
-def CalculateTripleBondNumber(mol: Chem.Mol) -> float:
-    """Calculate number of triple bonds."""
-    i = 0
-    for bond in mol.GetBonds():
-        if bond.GetBondType().name == 'TRIPLE':
-            i += 1
-    return i
-
-
-def CalculateAromaticBondNumber(mol: Chem.Mol) -> float:
-    """Calculate number of aromatic bonds."""
-    i = 0
-    for bond in mol.GetBonds():
-        if bond.GetBondType().name == 'AROMATIC':
-            i += 1
-    return i
-
-
-def CalculateAllAtomNumber(mol: Chem.Mol) -> float:
-    """Calculate number of all atoms."""
-    return Chem.AddHs(mol).GetNumAtoms()
-
-
-def _CalculatePathN(mol: Chem.Mol, PathLength=2) -> float:
-    """Calculate number of path of length N."""
-    return len(Chem.FindAllPathsOfLengthN(mol, PathLength, useBonds=1))
-
-
-def CalculatePath1(mol: Chem.Mol) -> float:
-    """Calculate number of path length of 1."""
-    return _CalculatePathN(mol, 1)
-
-
-def CalculatePath2(mol: Chem.Mol) -> float:
-    """Calculate number of path length of 2."""
-    return _CalculatePathN(mol, 2)
-
-
-def CalculatePath3(mol: Chem.Mol) -> float:
-    """Calculate number of path length of 3."""
-    return _CalculatePathN(mol, 3)
-
-
-def CalculatePath4(mol: Chem.Mol) -> float:
-    """Calculate number of path length of 4."""
-    return _CalculatePathN(mol, 4)
-
-
-def CalculatePath5(mol: Chem.Mol) -> float:
-    """Calculate number of path length of 5."""
-    return _CalculatePathN(mol, 5)
-
-
-def CalculatePath6(mol: Chem.Mol) -> float:
-    """Calculate number of path length of 6."""
-    return _CalculatePathN(mol, 6)
-
-
-_constitutional = {'Weight': CalculateHeavyMolWeight,
-                   'AWeight': CalculateAverageMolWeight,
-                   'nH': CalculateHydrogenNumber,
-                   'nHal': CalculateHalogenNumber,
-                   'nHet': CalculateHeteroNumber,
-                   'nHA': CalculateHeavyAtomNumber,
-                   'nF': CalculateFluorinNumber,
-                   'nCl': CalculateChlorinNumber,
-                   'nBr': CalculateBromineNumber,
-                   'nI': CalculateIodineNumber,
-                   'nC': CalculateCarbonNumber,
-                   'nP': CalculatePhosphorNumber,
-                   'nS': CalculateOxygenNumber,
-                   'nO': CalculateOxygenNumber,
-                   'nN': CalculateNitrogenNumber,
-                   'nRing': CalculateRingNumber,
-                   'nRotB': CalculateRotationBondNumber,
-                   'nHBD': CalculateHdonorNumber,
-                   'nHBA': CalculateHacceptorNumber,
-                   'nSBond': CalculateSingleBondNumber,
-                   'nDBond': CalculateDoubleBondNumber,
-                   'nAroBond': CalculateAromaticBondNumber,
-                   'nTBond': CalculateTripleBondNumber,
-                   'nAtom': CalculateAllAtomNumber,
-                   'PathL1': CalculatePath1,
-                   'PathL2': CalculatePath2,
-                   'PathL3': CalculatePath3,
-                   'PathL4': CalculatePath4,
-                   'PathL5': CalculatePath5,
-                   'PathL6': CalculatePath6}
-
-
-def GetConstitutional(mol: Chem.Mol) -> dict:
-    """Get all (30) constitutional descriptors."""
-    result = {}
-    for DesLabel in _constitutional.keys():
-        result[DesLabel] = round(_constitutional[DesLabel](mol), 3)
-    return result
-
-
-#############################
-# if __name__ =='__main__':
-#     smis = ['CCCC','CCCCC','CCCCCC','CC(N)C(=O)O','CC(N)C(=O)[O-].[Na+]']
-#     smi5=['CCCCCC','CCC(C)CC','CC(C)CCC','CC(C)C(C)C','CCCCCN','c1ccccc1N']
-#     for index, smi in enumerate(smis):
-#         m = Chem.MolFromSmiles(smi)
-#         print(index+1)
-#         print(smi)
-#         print('\t',GetConstitutional(m))
-#         print(len(GetConstitutional(m)))
+        return MolWeight / mol.GetNumAtoms()
+
+    @staticmethod
+    def calculate_hydrogen_number(mol: Chem.Mol) -> float:
+        """calculate_ number of Hydrogens."""
+        i = 0
+        Hmol = Chem.AddHs(mol)
+        for atom in Hmol.GetAtoms():
+            if atom.GetAtomicNum() == 1:
+                i += 1
+        return i
+
+    @staticmethod
+    def calculate_halogen_number(mol: Chem.Mol) -> float:
+        """calculate_ number of Halogens."""
+        i = 0
+        for atom in mol.GetAtoms():
+            if atom.GetAtomicNum() in [9, 17, 35, 53]:
+                i += 1
+        return i
+
+    @staticmethod
+    def calculate_hetero_number(mol: Chem.Mol) -> float:
+        """calculate_ number of Heteroatoms."""
+        i = 0
+        for atom in mol.GetAtoms():
+            if atom.GetAtomicNum() not in [1, 6]:
+                i += 1
+        return mol.GetNumAtoms() - i
+
+    @staticmethod
+    def calculate_heavy_atom_number(mol: Chem.Mol) -> float:
+        """calculate_ number of Heavy atoms."""
+        return mol.GetNumHeavyAtoms()
+
+    @staticmethod
+    def _calculate_element_number(mol: Chem.Mol, Atomic_number=6) -> float:
+        """calculate_ number of atoms with specified element."""
+        i = 0
+        for atom in mol.GetAtoms():
+            if atom.GetAtomicNum() == Atomic_number:
+                i += 1
+        return i
+
+    @staticmethod
+    def calculate_fluorine_number(mol: Chem.Mol) -> float:
+        """calculate_ number of Fluorine atoms."""
+        return Constitution._calculate_element_number(mol, Atomic_number=9)
+
+    @staticmethod
+    def calculate_chlorine_number(mol: Chem.Mol) -> float:
+        """calculate_ number of Fluorine atoms."""
+        return Constitution._calculate_element_number(mol, Atomic_number=17)
+
+
+    def calculate_bromine_number(mol: Chem.Mol) -> float:
+        """calculate_ number of Bromine atoms."""
+        return Constitution._calculate_element_number(mol, Atomic_number=35)
+
+    @staticmethod
+    def calculate_iodine_number(mol: Chem.Mol) -> float:
+        """calculate_ number of Iodine atoms."""
+        return Constitution._calculate_element_number(mol, Atomic_number=53)
+
+    @staticmethod
+    def calculate_carbon_number(mol: Chem.Mol) -> float:
+        """calculate_ number of Carbon atoms."""
+        return Constitution._calculate_element_number(mol, Atomic_number=6)
+
+    @staticmethod
+    def calculate_phosphor_number(mol: Chem.Mol) -> float:
+        """Calcualtion number of Phosphor atoms."""
+        return Constitution._calculate_element_number(mol, Atomic_number=15)
+
+    @staticmethod
+    def calculate_sulfur_number(mol: Chem.Mol) -> float:
+        """calculate_ number of Sulfur atoms."""
+        return Constitution._calculate_element_number(mol, Atomic_number=16)
+
+    @staticmethod
+    def calculate_oxygen_number(mol: Chem.Mol) -> float:
+        """calculate_ number of Oxygen atoms."""
+        return Constitution._calculate_element_number(mol, Atomic_number=8)
+
+    @staticmethod
+    def calculate_nitrogen_number(mol: Chem.Mol) -> float:
+        """calculate_ number of Nitrogen atoms."""
+        return Constitution._calculate_element_number(mol, Atomic_number=7)
+
+    @staticmethod
+    def calculate_ring_number(mol: Chem.Mol) -> float:
+        """calculate_ number of rings."""
+        return len(Chem.GetSSSR(mol))
+
+    @staticmethod
+    def calculate_rot_bond_number(mol: Chem.Mol) -> float:
+        """calculate_ number of rotatable bonds."""
+        return LPK.NumRotatableBonds(mol)
+
+    @staticmethod
+    def calculate_hdonor_number(mol: Chem.Mol) -> float:
+        """calculate_ number of Hydrongen bond donors."""
+        return LPK.NumHDonors(mol)
+
+    @staticmethod
+    def calculate_hacceptor_number(mol: Chem.Mol) -> float:
+        """calculate_ number of Hydrogen bond acceptors."""
+        return LPK.NumHAcceptors(mol)
+
+    @staticmethod
+    def calculate_singlebond_number(mol: Chem.Mol) -> float:
+        """calculate_ number of single bonds."""
+        i = 0
+        for bond in mol.GetBonds():
+            if bond.GetBondType().name == 'SINGLE':
+                i += 1
+        return i
+
+    @staticmethod
+    def calculate_doublebond_number(mol: Chem.Mol) -> float:
+        """calculate_ number of double bonds."""
+        i = 0
+        for bond in mol.GetBonds():
+            if bond.GetBondType().name == 'DOUBLE':
+                i += 1
+        return i
+
+    @staticmethod
+    def calculate_triplebond_number(mol: Chem.Mol) -> float:
+        """calculate_ number of triple bonds."""
+        i = 0
+        for bond in mol.GetBonds():
+            if bond.GetBondType().name == 'TRIPLE':
+                i += 1
+        return i
+
+    @staticmethod
+    def calculate_aromaticbond_number(mol: Chem.Mol) -> float:
+        """calculate_ number of aromatic bonds."""
+        i = 0
+        for bond in mol.GetBonds():
+            if bond.GetBondType().name == 'AROMATIC':
+                i += 1
+        return i
+
+    @staticmethod
+    def calculate_allatom_number(mol: Chem.Mol) -> float:
+        """calculate_ number of all atoms."""
+        return Chem.AddHs(mol).GetNumAtoms()
+
+    @staticmethod
+    def _calculate_path_n(mol: Chem.Mol, path_Length=2) -> float:
+        """calculate_ number of path of length N."""
+        return len(Chem.FindAllPathsOfLengthN(mol, path_Length, useBonds=1))
+
+    @staticmethod
+    def calculate_path_1(mol: Chem.Mol) -> float:
+        """calculate_ number of path length of 1."""
+        return Constitution._calculate_path_n(mol, 1)
+
+    @staticmethod
+    def calculate_path_2(mol: Chem.Mol) -> float:
+        """calculate_ number of path length of 2."""
+        return Constitution._calculate_path_n(mol, 2)
+
+    @staticmethod
+    def calculate_path_3(mol: Chem.Mol) -> float:
+        """calculate_ number of path length of 3."""
+        return Constitution._calculate_path_n(mol, 3)
+
+    @staticmethod
+    def calculate_path_4(mol: Chem.Mol) -> float:
+        """calculate_ number of path length of 4."""
+        return Constitution._calculate_path_n(mol, 4)
+
+    @staticmethod
+    def calculate_path_5(mol: Chem.Mol) -> float:
+        """calculate_ number of path length of 5."""
+        return Constitution._calculate_path_n(mol, 5)
+
+    @staticmethod
+    def calculate_path_6(mol: Chem.Mol) -> float:
+        """calculate_ number of path length of 6."""
+        return Constitution._calculate_path_n(mol, 6)
+
+
+    _constitutional = {'Weight': calculate_heavy_mol_weight,
+                       'nH': calculate_hydrogen_number,
+                       'nHal': calculate_halogen_number,
+                       'nHet': calculate_hetero_number,
+                       'nHA': calculate_heavy_atom_number,
+                       'nF': calculate_fluorine_number,
+                       'nCl': calculate_chlorine_number,
+                       'nBr': calculate_bromine_number,
+                       'nI': calculate_iodine_number,
+                       'nC': calculate_carbon_number,
+                       'nP': calculate_phosphor_number,
+                       'nS': calculate_oxygen_number,
+                       'nO': calculate_oxygen_number,
+                       'nN': calculate_nitrogen_number,
+                       'nRing': calculate_ring_number,
+                       'nRotB': calculate_rot_bond_number,
+                       'nHBD': calculate_hdonor_number,
+                       'nHBA': calculate_hacceptor_number,
+                       'nSBond': calculate_singlebond_number,
+                       'nDBond': calculate_doublebond_number,
+                       'nTBond': calculate_triplebond_number,
+                       'nAroBond': calculate_aromaticbond_number,
+                       'nAtom': calculate_allatom_number,
+                       'AWeight': calculate_average_mol_weight,
+                       'path_L1': calculate_path_1,
+                       'path_L2': calculate_path_2,
+                       'path_L3': calculate_path_3,
+                       'path_L4': calculate_path_4,
+                       'path_L5': calculate_path_5,
+                       'path_L6': calculate_path_6,
+                       }
+
+    @staticmethod
+    def get_all(mol: Chem.Mol) -> dict:
+        """Get all (30) constitutional descriptors."""
+        result = {}
+        for DesLabel in Constitution._constitutional.keys():
+            result[DesLabel] = Constitution._constitutional[DesLabel](mol)
+        return result

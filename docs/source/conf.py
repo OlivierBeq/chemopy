@@ -44,8 +44,8 @@ source_suffix = '.rst'
 master_doc = 'index'
 
 # General information about the project.
-project = 'pyChem'
-copyright = '2020, Dongsheng Cao'
+project = 'chemoPy'
+copyright = '2020-2023, Dongsheng Cao & Olivier J. M. Béquignon'
 author = 'Dongsheng Cao'
 
 # The version info for the project you're documenting, acts as replacement for
@@ -54,7 +54,7 @@ author = 'Dongsheng Cao'
 #
 
 # The full version, including alpha/beta/rc tags.
-release = '0.0.1-dev'
+release = '1.0.1'
 
 # The short X.Y version.
 parsed_version = re.match(
@@ -237,7 +237,7 @@ html_static_path = []
 # html_search_scorer = 'scorer.js'
 
 # Output file base name for HTML help builder.
-htmlhelp_basename = 'itertogetherdoc'
+htmlhelp_basename = 'chemopydoc'
 
 # -- Options for LaTeX output ---------------------------------------------
 
@@ -265,8 +265,8 @@ latex_elements = {
 latex_documents = [
     (
         master_doc,
-        'pychem.tex',
-        'pychem Documentation',
+        'chemopy.tex',
+        'ChemoPy Documentation',
         author,
         'manual',
     ),
@@ -312,8 +312,8 @@ latex_documents = [
 man_pages = [
     (
         master_doc,
-        'pychem',
-        'pychem Documentation',
+        'chemopy',
+        'ChemoPy Documentation',
         [author],
         1,
     )
@@ -332,10 +332,10 @@ man_pages = [
 texinfo_documents = [
     (
         master_doc,
-        'pychem',
-        'pychem Documentation',
+        'chemopy',
+        'ChemoPy Documentation',
         author,
-        'pychem',
+        'chemoPy',
         'A package to calculate molecular descriptors.',
         'Cheminformatics',
     ),

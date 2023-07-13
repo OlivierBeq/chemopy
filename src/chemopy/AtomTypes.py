@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #####
-# $Id: AtomTypes.py 997 2009-02-25 06:12:43Z glandrum $
+# $Id: atomtypes.py 997 2009-02-25 06:12:43Z glandrum $
 #
 # Copyright (C) 2002-2006  greg Landrum and Rational Discovery LLC
 #
@@ -16,10 +16,10 @@ Defined in: Hall and Kier JCICS _35_ 1039-1045 (1995)  Table 1
 import warnings
 from typing import List, Tuple
 
-import numpy
+import numpy as np
 from rdkit import Chem
 
-_rawD = [
+_raw_d = [
     ('sLi', '[LiD1]-*'),
 
     ('ssBe', '[BeD2](-*)-*'),
@@ -122,11 +122,11 @@ _rawD = [
 esPatterns = None
 
 
-def BuildPatts(rawV: List[Tuple[str]] = None) -> None:
+def build_patterns(rawV: List[Tuple[str]] = None) -> None:
     """Create SMARTS molecule from patters."""
-    global esPatterns, _rawD
+    global esPatterns, _raw_d
     if rawV is None:
-        rawV = _rawD
+        rawV = _raw_d
 
     esPatterns = [None] * len(rawV)
     for i, (name, sma) in enumerate(rawV):
@@ -138,14 +138,14 @@ def BuildPatts(rawV: List[Tuple[str]] = None) -> None:
             esPatterns[i] = name, patt
 
 
-def TypeAtoms(mol) -> List[Tuple[int]]:
+def type_atoms(mol) -> List[Tuple[int]]:
     """Assign each atom to an EState type.
 
     :return AtomType match.
     #  list of tuples (atoms can possibly match multiple patterns) with atom types
     """
     if esPatterns is None:
-        BuildPatts()
+        build_patterns()
     nAtoms = mol.GetNumAtoms()
     res = [None] * nAtoms
     for name, patt in esPatterns:
@@ -164,16 +164,16 @@ def TypeAtoms(mol) -> List[Tuple[int]]:
     return res
 
 
-def GetAtomLabel(mol: Chem.Mol) -> List[float]:
+def get_atom_label(mol: Chem.Mol) -> List[float]:
     """Calculate the atom index in a molecule for the above given atom types."""
     if esPatterns is None:
-        BuildPatts()
+        build_patterns()
     res = []
     for _, patt in esPatterns:
         matches = mol.GetSubstructMatches(patt, uniquify=0)
         cc = []
         for match in matches:
             cc.append(match[0])
-        bb = list(numpy.unique(numpy.array(cc)))
+        bb = list(np.unique(np.array(cc)))
         res.append(bb)
     return res
