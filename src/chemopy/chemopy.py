@@ -74,7 +74,7 @@ class ChemoPy:
                               for future in futures]
                              ).reset_index(drop=True).fillna(0)
         # Single process
-        return self._calculate(list(mols))
+        return self._calculate(mols)
 
     def _show_banner(self):
         """Print info message for citing."""
