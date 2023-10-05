@@ -134,25 +134,11 @@ class Fingerprint:
         bv = mapcalc.calculate(mol)
         values = dict(zip([f'MAP{radius * 2}_{i + 1}' for i in range(nbits)], bv))
         return values
-
-    _fp_funcs = {'FP2': (calculate_fp2_fp, tuple()),
-                 'FP3': (calculate_fp3_fp, tuple()),
-                 'FP4': (calculate_fp4_fp, tuple()),
-                 'MACCS': (calculate_maccs_fp, tuple()),
-                 'Estate': (calculate_estate_fp, tuple()),
-                 'topological': (calculate_rdk_fp, ('nbits')),
-                 'atompairs': (calculate_atompairs_fp, ('nbits')),
-                 'torsions': (calculate_topological_torsion_fp, ('nbits')),
-                 'morgan': (calculate_morgan_fp, ('radius', 'nbits')),
-                 'SECFP': (calculate_secfp_fp, ('radius', 'nbits')),
-                 'MAP': (calculate_minhash_atompair_fp, ('radius', 'nbits'))
-                 }
-
     @staticmethod
     def get_all_fps(mol: Chem.Mol, radius: Optional[int] = None, nbits: Optional[int] = None) -> dict:
         """Calculate all fingerprints."""
         values = {}
-        for des_label, (func, supported_args) in Fingerprint._fp_funcs.items():
+        for des_label, (func, supported_args) in _fp_funcs.items():
             if radius is not None and nbits is not None and 'radius' in supported_args and 'nbits' in supported_args:
                 values.update(func(mol, radius=radius, nbits=nbits))
             elif radius is not None and 'radius' in supported_args:
@@ -162,3 +148,17 @@ class Fingerprint:
             else:
                 values.update(func(mol))
         return values
+
+
+_fp_funcs = {'FP2': (Fingerprint.calculate_fp2_fp, tuple()),
+             'FP3': (Fingerprint.calculate_fp3_fp, tuple()),
+             'FP4': (Fingerprint.calculate_fp4_fp, tuple()),
+             'MACCS': (Fingerprint.calculate_maccs_fp, tuple()),
+             'Estate': (Fingerprint.calculate_estate_fp, tuple()),
+             'topological': (Fingerprint.calculate_rdk_fp, ('nbits')),
+             'atompairs': (Fingerprint.calculate_atompairs_fp, ('nbits')),
+             'torsions': (Fingerprint.calculate_topological_torsion_fp, ('nbits')),
+             'morgan': (Fingerprint.calculate_morgan_fp, ('radius', 'nbits')),
+             'SECFP': (Fingerprint.calculate_secfp_fp, ('radius', 'nbits')),
+             'MAP': (Fingerprint.calculate_minhash_atompair_fp, ('radius', 'nbits'))
+             }

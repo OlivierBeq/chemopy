@@ -549,48 +549,46 @@ class Topology:
                 res += deltas[i] * deltas[j] * Distance[i, j]
         return np.log10(res)
     
-    
-    _topology = {'W': calculate_weiner,
-                 'AW': calculate_mean_weiner,
-                 'J': calculate_balaban,
-                 'Thara': calculate_harary,
-                 'Tsch': calculate_schiultz,
-                 'Tigdi': calculate_graph_distance,
-                 'Platt': calculate_platt,
-                 'Xu': calculate_xu_index,
-                 'Pol': calculate_polarity_number,
-                 'DZ': calculate_pogliani_index,
-                 'Ipc': calculate_ipc,
-                 'BertzCT': calculate_bertzct,
-                 'GMTI': calculate_gutman_topo,
-                 'ZM1': calculate_zagreb1,
-                 'ZM2': calculate_zagreb2,
-                 'MZM1': calculate_mzagreb1,
-                 'MZM2': calculate_mzagreb2,
-                 'Qindex': calculate_quadratic,
-                 'diametert': calculate_diameter,
-                 'radiust': calculate_radius,
-                 'petitjeant': calculate_petitjean,
-                 'Sito': calculate_simple_topo_index,
-                 'Hato': calculate_harmonic_topo_index,
-                 'Geto': calculate_geometric_topo_index,
-                 'Arto': calculate_arithmetic_topo_index,
-                 'ISIZ': calculate_mol_size_total_inf,
-                 'TIAC': calculate_atom_comp_total_inf,
-                 'IDET': calculate_distance_equality_total_inf,
-                 'IDE': calculate_distance_equality_mean_inf,
-                 'IVDE': calculate_vertex_equality_total_inf,
-                 'Sitov': calculate_simple_topo_vindex,
-                 'Hatov': calculate_harmonic_topo_vindex,
-                 'Getov': calculate_geometric_topo_vindex,
-                 'Gravto': calculate_gravitational_topo_index,
-                 'GMTIV': calculate_gutman_vtopo,
-                 }
-    
-    
     def get_all(mol: Chem.Mol) -> dict:
         """Get all (35) constitutional descriptors."""
         result = {}
-        for DesLabel in Topology._topology.keys():
-            result[DesLabel] = Topology._topology[DesLabel](mol)
+        for DesLabel in _topology.keys():
+            result[DesLabel] = _topology[DesLabel](mol)
         return result
+
+_topology = {'W': Topology.calculate_weiner,
+             'AW': Topology.calculate_mean_weiner,
+             'J': Topology.calculate_balaban,
+             'Thara': Topology.calculate_harary,
+             'Tsch': Topology.calculate_schiultz,
+             'Tigdi': Topology.calculate_graph_distance,
+             'Platt': Topology.calculate_platt,
+             'Xu': Topology.calculate_xu_index,
+             'Pol': Topology.calculate_polarity_number,
+             'DZ': Topology.calculate_pogliani_index,
+             'Ipc': Topology.calculate_ipc,
+             'BertzCT': Topology.calculate_bertzct,
+             'GMTI': Topology.calculate_gutman_topo,
+             'ZM1': Topology.calculate_zagreb1,
+             'ZM2': Topology.calculate_zagreb2,
+             'MZM1': Topology.calculate_mzagreb1,
+             'MZM2': Topology.calculate_mzagreb2,
+             'Qindex': Topology.calculate_quadratic,
+             'diametert': Topology.calculate_diameter,
+             'radiust': Topology.calculate_radius,
+             'petitjeant': Topology.calculate_petitjean,
+             'Sito': Topology.calculate_simple_topo_index,
+             'Hato': Topology.calculate_harmonic_topo_index,
+             'Geto': Topology.calculate_geometric_topo_index,
+             'Arto': Topology.calculate_arithmetic_topo_index,
+             'ISIZ': Topology.calculate_mol_size_total_inf,
+             'TIAC': Topology.calculate_atom_comp_total_inf,
+             'IDET': Topology.calculate_distance_equality_total_inf,
+             'IDE': Topology.calculate_distance_equality_mean_inf,
+             'IVDE': Topology.calculate_vertex_equality_total_inf,
+             'Sitov': Topology.calculate_simple_topo_vindex,
+             'Hatov': Topology.calculate_harmonic_topo_vindex,
+             'Getov': Topology.calculate_geometric_topo_vindex,
+             'Gravto': Topology.calculate_gravitational_topo_index,
+             'GMTIV': Topology.calculate_gutman_vtopo,
+             }

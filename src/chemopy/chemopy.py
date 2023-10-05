@@ -102,9 +102,9 @@ DOI: 10.1093/bioinformatics/btt105
         :param mols: RDKit molecules for which chemoPy descriptors should be calculated
         :return: a pandas DataFrame containing all chemoPy descriptor values
         """
-        descs_2D = [Constitution.get_all, Topology.get_all, Connectivity.get_all, Kappa.get_all, Basak.get_all,
-                    EState.get_all_fps, EState.get_all_descriptors, BCUT.get_all, MoreauBroto.get_all,
-                    Moran.get_all, Geary.get_all, Charge.get_all, MolecularProperties.get_all, MOE.get_all]
+        descs_2D = [(Constitution, 'get_all'), (Topology, 'get_all'), (Connectivity, 'get_all'), (Kappa, 'get_all'), (Basak, 'get_all'),
+                    (EState, 'get_all_fps'), (EState, 'get_all_descriptors'), (BCUT, 'get_all'), (MoreauBroto, 'get_all'),
+                    (Moran, 'get_all'), (Geary, 'get_all'), (Charge, 'get_all'), (MolecularProperties, 'get_all'), (MOE, 'get_all')]
         descs_3D = []
         # Sanity check for 3D descriptors
         if not self.ignore_3D:
@@ -112,23 +112,23 @@ DOI: 10.1093/bioinformatics/btt105
                 confs = list(mol.GetConformers())
                 if not (len(confs) > 0 and confs[-1].Is3D()):
                     raise ValueError('Cannot calculate 3D descriptors for a conformer-less molecule')
-            descs_3D.extend([Geometric.get_all, CPSA.get_all, WHIM.get_all,
-                             MoRSE.get_all, RDF.get_all, QuantumChemistry.get_all])
+            descs_3D.extend([(Geometric, 'get_all'), (CPSA, 'get_all') , (WHIM, 'get_all'),
+                             (MoRSE, 'get_all'), (RDF, 'get_all'), (QuantumChemistry, 'get_all')])
         # Include fingerprints?
         if self.include_fps:
-            descs_2D.append(Fingerprint.get_all_fps)
+            descs_2D.append((Fingerprint, 'get_all_fps'))
             # Include 3D fingerprint(s)
             if not self.ignore_3D:
-                descs_3D.append(Fingerprint3D.calculate_e3fp)
+                descs_3D.append((Fingerprint3D, 'calculate_e3fp'))
         # Calculate descriptors
         all_values = []
         skipped_mols = []
         for i, mol in enumerate(mols):
             mol_values = {}
             # 2D descriptors
-            for desc_2D in descs_2D:
+            for desc_2D, fn in descs_2D:
                 try:
-                    tmp = desc_2D(mol)
+                    tmp = getattr(desc_2D, fn)(mol)
                     mol_values.update(tmp)
                 except Exception as e:
                     raise e
@@ -138,9 +138,9 @@ DOI: 10.1093/bioinformatics/btt105
                 try:
                     dir_, arc_file = geo_opt.get_arc_file(mol, verbose=False)
                     mol3d = geo_opt.get_optimized_mol(arc_file=arc_file)
-                    for desc_3D in descs_3D:
+                    for desc_3D, fn in descs_3D:
                         try:
-                            mol_values.update(desc_3D(mol=mol3d, arc_file=arc_file))
+                            mol_values.update(getattr(desc_3D, fn)(mol=mol3d, arc_file=arc_file))
                         except Exception as e:
                             raise e
                             pass

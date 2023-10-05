@@ -275,35 +275,35 @@ class Basak:
         else:
             BasakCIC = np.log2(nAtoms) - IC
         return BasakCIC
-    
-    
-    _basak = {'IC0': calculate_basak_ic0,
-              'IC1': calculate_basak_ic1,
-              'IC2': calculate_basak_ic2,
-              'IC3': calculate_basak_ic3,
-              'IC4': calculate_basak_ic4,
-              'IC5': calculate_basak_ic5,
-              'IC6': calculate_basak_ic6,
-              'SIC0': calculate_basak_sic0,
-              'SIC1': calculate_basak_sic1,
-              'SIC2': calculate_basak_sic2,
-              'SIC3': calculate_basak_sic3,
-              'SIC4': calculate_basak_sic4,
-              'SIC5': calculate_basak_sic5,
-              'SIC6': calculate_basak_sic6,
-              'CIC0': calculate_basak_cic0,
-              'CIC1': calculate_basak_cic1,
-              'CIC2': calculate_basak_cic2,
-              'CIC3': calculate_basak_cic3,
-              'CIC4': calculate_basak_cic4,
-              'CIC5': calculate_basak_cic5,
-              'CIC6': calculate_basak_cic6,
-              }
 
     @staticmethod
     def get_all(mol: Chem.Mol) -> dict:
         """Calculate all (21) Basak descriptors."""
         result = {}
-        for DesLabel in Basak._basak.keys():
-            result[DesLabel] = Basak._basak[DesLabel](mol)
+        for DesLabel in _basak.keys():
+            result[DesLabel] = _basak[DesLabel](mol)
         return result
+
+
+_basak = {'IC0': Basak.calculate_basak_ic0,
+          'IC1': Basak.calculate_basak_ic1,
+          'IC2': Basak.calculate_basak_ic2,
+          'IC3': Basak.calculate_basak_ic3,
+          'IC4': Basak.calculate_basak_ic4,
+          'IC5': Basak.calculate_basak_ic5,
+          'IC6': Basak.calculate_basak_ic6,
+          'SIC0': Basak.calculate_basak_sic0,
+          'SIC1': Basak.calculate_basak_sic1,
+          'SIC2': Basak.calculate_basak_sic2,
+          'SIC3': Basak.calculate_basak_sic3,
+          'SIC4': Basak.calculate_basak_sic4,
+          'SIC5': Basak.calculate_basak_sic5,
+          'SIC6': Basak.calculate_basak_sic6,
+          'CIC0': Basak.calculate_basak_cic0,
+          'CIC1': Basak.calculate_basak_cic1,
+          'CIC2': Basak.calculate_basak_cic2,
+          'CIC3': Basak.calculate_basak_cic3,
+          'CIC4': Basak.calculate_basak_cic4,
+          'CIC5': Basak.calculate_basak_cic5,
+          'CIC6': Basak.calculate_basak_cic6,
+          }

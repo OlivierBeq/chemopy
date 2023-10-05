@@ -210,43 +210,43 @@ class Constitution:
         """calculate_ number of path length of 6."""
         return Constitution._calculate_path_n(mol, 6)
 
-
-    _constitutional = {'Weight': calculate_heavy_mol_weight,
-                       'nH': calculate_hydrogen_number,
-                       'nHal': calculate_halogen_number,
-                       'nHet': calculate_hetero_number,
-                       'nHA': calculate_heavy_atom_number,
-                       'nF': calculate_fluorine_number,
-                       'nCl': calculate_chlorine_number,
-                       'nBr': calculate_bromine_number,
-                       'nI': calculate_iodine_number,
-                       'nC': calculate_carbon_number,
-                       'nP': calculate_phosphor_number,
-                       'nS': calculate_oxygen_number,
-                       'nO': calculate_oxygen_number,
-                       'nN': calculate_nitrogen_number,
-                       'nRing': calculate_ring_number,
-                       'nRotB': calculate_rot_bond_number,
-                       'nHBD': calculate_hdonor_number,
-                       'nHBA': calculate_hacceptor_number,
-                       'nSBond': calculate_singlebond_number,
-                       'nDBond': calculate_doublebond_number,
-                       'nTBond': calculate_triplebond_number,
-                       'nAroBond': calculate_aromaticbond_number,
-                       'nAtom': calculate_allatom_number,
-                       'AWeight': calculate_average_mol_weight,
-                       'path_L1': calculate_path_1,
-                       'path_L2': calculate_path_2,
-                       'path_L3': calculate_path_3,
-                       'path_L4': calculate_path_4,
-                       'path_L5': calculate_path_5,
-                       'path_L6': calculate_path_6,
-                       }
-
     @staticmethod
     def get_all(mol: Chem.Mol) -> dict:
         """Get all (30) constitutional descriptors."""
         result = {}
-        for DesLabel in Constitution._constitutional.keys():
-            result[DesLabel] = Constitution._constitutional[DesLabel](mol)
+        for DesLabel in _constitutional.keys():
+            result[DesLabel] = _constitutional[DesLabel](mol)
         return result
+
+
+_constitutional = {'Weight': Constitution.calculate_heavy_mol_weight,
+                   'nH': Constitution.calculate_hydrogen_number,
+                   'nHal': Constitution.calculate_halogen_number,
+                   'nHet': Constitution.calculate_hetero_number,
+                   'nHA': Constitution.calculate_heavy_atom_number,
+                   'nF': Constitution.calculate_fluorine_number,
+                   'nCl': Constitution.calculate_chlorine_number,
+                   'nBr': Constitution.calculate_bromine_number,
+                   'nI': Constitution.calculate_iodine_number,
+                   'nC': Constitution.calculate_carbon_number,
+                   'nP': Constitution.calculate_phosphor_number,
+                   'nS': Constitution.calculate_oxygen_number,
+                   'nO': Constitution.calculate_oxygen_number,
+                   'nN': Constitution.calculate_nitrogen_number,
+                   'nRing': Constitution.calculate_ring_number,
+                   'nRotB': Constitution.calculate_rot_bond_number,
+                   'nHBD': Constitution.calculate_hdonor_number,
+                   'nHBA': Constitution.calculate_hacceptor_number,
+                   'nSBond': Constitution.calculate_singlebond_number,
+                   'nDBond': Constitution.calculate_doublebond_number,
+                   'nTBond': Constitution.calculate_triplebond_number,
+                   'nAroBond': Constitution.calculate_aromaticbond_number,
+                   'nAtom': Constitution.calculate_allatom_number,
+                   'AWeight': Constitution.calculate_average_mol_weight,
+                   'path_L1': Constitution.calculate_path_1,
+                   'path_L2': Constitution.calculate_path_2,
+                   'path_L3': Constitution.calculate_path_3,
+                   'path_L4': Constitution.calculate_path_4,
+                   'path_L5': Constitution.calculate_path_5,
+                   'path_L6': Constitution.calculate_path_6,
+                   }

@@ -99,19 +99,20 @@ class MolecularProperties:
             (nhy + 0.0) / (nheavy * nheavy))) / math.log(1.0 + nheavy)
         return res
 
-
-    molecular_property = {'MR': calculate_molmr,
-                          'LogP': calculate_mollogp,
-                          'LogP2': calculate_mollogp2,
-                          'TPSA': calculate_tpsa,
-                          'UI': calculate_unsaturation_index,
-                          'Hy': calculate_hydrophilicity_factor,
-                          }
-
     @staticmethod
     def get_all(mol: Chem.Mol) -> dict:
         """Get all (6) constitutional descriptors."""
         result = {}
-        for des_label in MolecularProperties.molecular_property.keys():
-            result[des_label] = MolecularProperties.molecular_property[des_label](mol)
+        for des_label in molecular_property.keys():
+            result[des_label] = molecular_property[des_label](mol)
         return result
+
+
+molecular_property = {'MR': MolecularProperties.calculate_molmr,
+                      'LogP': MolecularProperties.calculate_mollogp,
+                      'LogP2': MolecularProperties.calculate_mollogp2,
+                      'TPSA': MolecularProperties.calculate_tpsa,
+                      'UI': MolecularProperties.calculate_unsaturation_index,
+                      'Hy': MolecularProperties.calculate_hydrophilicity_factor,
+                      }
+

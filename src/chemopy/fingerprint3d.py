@@ -60,16 +60,17 @@ class Fingerprint3D:
             return fps[0]
         return fps
 
-    _fp_funcs = {'E3FP': (calculate_e3fp, ('nbits')),
-                 }
-
     @staticmethod
     def get_all_fps(mol: Chem.Mol, nbits: Optional[int] = None) -> dict:
         """Calculate all fingerprints."""
         values = {}
-        for des_label, (func, supported_args) in Fingerprint3D._fp_funcs.items():
+        for des_label, (func, supported_args) in _fp_funcs.items():
             if nbits is not None and 'nbits' in supported_args:
                 values.update(func(mol, nbits=nbits))
             else:
                 values.update(func(mol))
         return values
+
+
+_fp_funcs = {'E3FP': (Fingerprint3D.calculate_e3fp, ('nbits')),
+             }

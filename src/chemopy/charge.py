@@ -292,38 +292,38 @@ class Charge:
         """calculate_ the submolecular polarity parameter (SPP)."""
         return Charge.calculate_all_max_pcharge(mol) - Charge.calculate_all_max_ncharge(mol)
     
-    
-    _charge = {'QHmax': calculate_h_max_pcharge,
-               'QCmax': calculate_c_max_pcharge,
-               'QNmax': calculate_n_max_pcharge,
-               'QOmax': calculate_o_max_pcharge,
-               'QHmin': calculate_h_max_ncharge,
-               'QCmin': calculate_c_max_ncharge,
-               'QNmin': calculate_n_max_ncharge,
-               'QOmin': calculate_o_max_ncharge,
-               'Qmax': calculate_all_max_pcharge,
-               'Qmin': calculate_all_max_ncharge,
-               'QHss': calculate_h_sum_square_charge,
-               'QCss': calculate_c_sum_square_charge,
-               'QNss': calculate_n_sum_square_charge,
-               'QOss': calculate_o_sum_square_charge,
-               'Qass': calculate_all_sum_square_charge,
-               'Mpc': calculate_mean_pcharge,
-               'Tpc': calculate_total_pcharge,
-               'Mnc': calculate_mean_ncharge,
-               'Tnc': calculate_total_ncharge,
-               'Mac': calculate_mean_absolute_charge,
-               'Tac': calculate_total_absolute_charge,
-               'Rnc': calculate_relative_ncharge,
-               'Rpc': calculate_relative_pcharge,
-               'SPP': calculate_submol_polarity_param,
-               'LDI': calculate_local_dipole_index,
-               }
-
     @staticmethod
     def get_all(mol: Chem.Mol) -> dict:
         """Get all (25) constitutional descriptors."""
         result = {}
-        for DesLabel in Charge._charge.keys():
-            result[DesLabel] = Charge._charge[DesLabel](mol)
+        for DesLabel in _charge.keys():
+            result[DesLabel] = _charge[DesLabel](mol)
         return result
+
+
+_charge = {'QHmax': Charge.calculate_h_max_pcharge,
+           'QCmax': Charge.calculate_c_max_pcharge,
+           'QNmax': Charge.calculate_n_max_pcharge,
+           'QOmax': Charge.calculate_o_max_pcharge,
+           'QHmin': Charge.calculate_h_max_ncharge,
+           'QCmin': Charge.calculate_c_max_ncharge,
+           'QNmin': Charge.calculate_n_max_ncharge,
+           'QOmin': Charge.calculate_o_max_ncharge,
+           'Qmax': Charge.calculate_all_max_pcharge,
+           'Qmin': Charge.calculate_all_max_ncharge,
+           'QHss': Charge.calculate_h_sum_square_charge,
+           'QCss': Charge.calculate_c_sum_square_charge,
+           'QNss': Charge.calculate_n_sum_square_charge,
+           'QOss': Charge.calculate_o_sum_square_charge,
+           'Qass': Charge.calculate_all_sum_square_charge,
+           'Mpc': Charge.calculate_mean_pcharge,
+           'Tpc': Charge.calculate_total_pcharge,
+           'Mnc': Charge.calculate_mean_ncharge,
+           'Tnc': Charge.calculate_total_ncharge,
+           'Mac': Charge.calculate_mean_absolute_charge,
+           'Tac': Charge.calculate_total_absolute_charge,
+           'Rnc': Charge.calculate_relative_ncharge,
+           'Rpc': Charge.calculate_relative_pcharge,
+           'SPP': Charge.calculate_submol_polarity_param,
+           'LDI': Charge.calculate_local_dipole_index,
+           }
