@@ -430,7 +430,7 @@ class Topology:
         deltas = [x.GetDegree() for x in mol.GetAtoms()]
         res = 0.0
         while 0 in deltas:
-            deltas.remove()
+            deltas.remove(0)
         for i in range(max(deltas)):
             cc = deltas.count(i + 1)
             if cc == 0:
