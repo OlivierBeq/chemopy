@@ -15,6 +15,7 @@ from rdkit.Chem import MACCSkeys
 from rdkit.Chem.rdMolDescriptors import (GetHashedAtomPairFingerprintAsBitVect,
                                          GetMorganFingerprintAsBitVect,
                                          GetHashedTopologicalTorsionFingerprintAsBitVect)
+from rdkit.Avalon.pyAvalonTools import GetAvalonFP
 
 from .estate import EState
 
@@ -134,6 +135,18 @@ class Fingerprint:
         bv = mapcalc.calculate(mol)
         values = dict(zip([f'MAP{radius * 2}_{i + 1}' for i in range(nbits)], bv))
         return values
+
+    @staticmethod
+    def calculate_avalon_fp(mol: Chem.Mol, nbits: int = 512) -> dict:
+        """Calculate an Avalon fingerprint.
+
+        :param mols: the molecules
+        :param nbits: Number of folded bits
+        """
+        bv = GetAvalonFP(mol, nBits=nbits)
+        values = dict(zip([f'Avalon_{i + 1}' for i in range(nbits)], bv))
+        return values
+
     @staticmethod
     def get_all_fps(mol: Chem.Mol, radius: Optional[int] = None, nbits: Optional[int] = None) -> dict:
         """Calculate all fingerprints."""
@@ -160,5 +173,6 @@ _fp_funcs = {'FP2': (Fingerprint.calculate_fp2_fp, tuple()),
              'torsions': (Fingerprint.calculate_topological_torsion_fp, ('nbits')),
              'morgan': (Fingerprint.calculate_morgan_fp, ('radius', 'nbits')),
              'SECFP': (Fingerprint.calculate_secfp_fp, ('radius', 'nbits')),
-             'MAP': (Fingerprint.calculate_minhash_atompair_fp, ('radius', 'nbits'))
+             'MAP': (Fingerprint.calculate_minhash_atompair_fp, ('radius', 'nbits')),
+             'Avalon': (Fingerprint.calculate_avalon_fp, ('nbits')),
              }
