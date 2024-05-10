@@ -79,14 +79,14 @@ class Topology:
     @staticmethod
     def calculate_graph_distance(mol: Chem.Mol) -> float:
         """Get graph distance index.
-    
+
         Or Tigdi.
         """
         Distance = Chem.GetDistanceMatrix(mol)
-        n = int(Distance.max())
         res = 0.0
-        for i in range(n):
-            temp = 1. / 2 * sum(sum(Distance == i + 1))
+        for i in np.unique(Distance.ravel()):
+            if i == 0 or i == 1.e+08: continue
+            temp = 1. / 2 * sum(sum(Distance == i))
             res = res + temp ** 2
         return np.log10(res)
 
@@ -388,20 +388,21 @@ class Topology:
         Distance = Chem.GetDistanceMatrix(mol)
         nAT = mol.GetNumAtoms()
         n = 1. / 2 * nAT ** 2 - nAT
-        DisType = int(Distance.max())
         res = 0.0
-        for i in range(DisType):
-            cc = 1. / 2 * sum(sum(Distance == i + 1))
-            res += cc * np.log2(cc)
+        for i in np.unique(Distance.ravel()):
+            if i == 1.e+08: continue
+            cc = 1. / 2 * sum(sum(Distance == i))
+            if cc > 0:
+                res += cc * np.log2(cc)
         return n * np.log2(n) - res if n > 0 else np.NaN
 
     @staticmethod
     def _calculate_entropy(Probability: Iterable[float]) -> float:
         """calculate_ entropy (Information content) of given probability."""
         res = 0.0
-        for i in Probability:
-            if i != 0:
-                res = res - i * np.log2(i)
+        Probability = np.array(Probability)
+        for i in Probability[Probability != 0]:
+            res = res - i * np.log2(i)
         return res
 
     @staticmethod
@@ -416,8 +417,9 @@ class Topology:
         DisType = int(Distance.max())
         res = 0.0
         cc = np.zeros(DisType, dtype=float)
-        for i in range(DisType):
-            cc[i] = 1. / 2 * sum(sum(Distance == i + 1))
+        for i in np.unique(Distance.ravel()).astype(int):
+            if i == 1.e+08: continue
+            cc[i - 1] = 1. / 2 * sum(sum(Distance == i))
         res = Topology._calculate_entropy(cc / n)
         return res
 

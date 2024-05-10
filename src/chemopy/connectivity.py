@@ -20,9 +20,8 @@ class Connectivity:
     def calculate_chi0(mol: Chem.Mol) -> float:
         """Calculate molecular connectivity chi index for path order 0."""
         deltas = [x.GetDegree() for x in mol.GetAtoms()]
-        while [0] in deltas:
-            deltas.remove([0])
         deltas = np.array(deltas, 'd')
+        deltas = deltas[deltas != 0]
         res = sum(np.sqrt(1. / deltas))
         return res
 
