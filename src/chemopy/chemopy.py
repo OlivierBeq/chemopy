@@ -40,15 +40,19 @@ from .whim import WHIM
 class ChemoPy:
     """Molecular descriptor calculator."""
 
-    def __init__(self, ignore_3D: bool = True, include_fps: bool = False):
+    def __init__(self, ignore_3D: bool = True, include_fps: bool = False, exclude_descriptors: bool = False):
         """Instantiate a molecular descriptor calculator.
 
         :param ignore_3D: Avoid calculating 3D molecular descriptors (default: True).
         If `False`, then molecules must have 3D conformers.
         :param include_fps: Should 2D fingerprints be also calculated (default: False).
+        :param exclude_descriptors: Should molecular descriptors be excluded (default: False).
         """
+        if exclude_descriptors and not include_fps:
+            raise ValueError('Either molecular descriptors or fingerprints must be calculated.')
         self.ignore_3D = ignore_3D
         self.include_fps = include_fps
+        self.include_descriptors = not exclude_descriptors
 
     def calculate(self, mols: List[Chem.Mol], show_banner: bool = True, njobs: int = 1,
                   chunksize: Optional[int] = 1000) -> pd.DataFrame:
@@ -102,18 +106,21 @@ DOI: 10.1093/bioinformatics/btt105
         :param mols: RDKit molecules for which chemoPy descriptors should be calculated
         :return: a pandas DataFrame containing all chemoPy descriptor values
         """
-        descs_2D = [(Constitution, 'get_all'), (Topology, 'get_all'), (Connectivity, 'get_all'), (Kappa, 'get_all'), (Basak, 'get_all'),
-                    (EState, 'get_all_fps'), (EState, 'get_all_descriptors'), (BCUT, 'get_all'), (MoreauBroto, 'get_all'),
-                    (Moran, 'get_all'), (Geary, 'get_all'), (Charge, 'get_all'), (MolecularProperties, 'get_all'), (MOE, 'get_all')]
-        descs_3D = []
-        # Sanity check for 3D descriptors
-        if not self.ignore_3D:
-            for mol in mols:
-                confs = list(mol.GetConformers())
-                if not (len(confs) > 0 and confs[-1].Is3D()):
-                    raise ValueError('Cannot calculate 3D descriptors for a conformer-less molecule')
-            descs_3D.extend([(Geometric, 'get_all'), (CPSA, 'get_all') , (WHIM, 'get_all'),
-                             (MoRSE, 'get_all'), (RDF, 'get_all'), (QuantumChemistry, 'get_all')])
+        if self.include_descriptors:
+            descs_2D = [(Constitution, 'get_all'), (Topology, 'get_all'), (Connectivity, 'get_all'), (Kappa, 'get_all'), (Basak, 'get_all'),
+                        (EState, 'get_all_fps'), (EState, 'get_all_descriptors'), (BCUT, 'get_all'), (MoreauBroto, 'get_all'),
+                        (Moran, 'get_all'), (Geary, 'get_all'), (Charge, 'get_all'), (MolecularProperties, 'get_all'), (MOE, 'get_all')]
+            descs_3D = []
+            # Sanity check for 3D descriptors
+            if not self.ignore_3D:
+                for mol in mols:
+                    confs = list(mol.GetConformers())
+                    if not (len(confs) > 0 and confs[-1].Is3D()):
+                        raise ValueError('Cannot calculate 3D descriptors for a conformer-less molecule')
+                descs_3D.extend([(Geometric, 'get_all'), (CPSA, 'get_all') , (WHIM, 'get_all'),
+                                 (MoRSE, 'get_all'), (RDF, 'get_all'), (QuantumChemistry, 'get_all')])
+        else:
+            descs_2D, descs_3D = [], []
         # Include fingerprints?
         if self.include_fps:
             descs_2D.append((Fingerprint, 'get_all_fps'))
