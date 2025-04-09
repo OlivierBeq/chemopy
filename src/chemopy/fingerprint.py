@@ -12,6 +12,7 @@ from mhfp.encoder import MHFPEncoder
 from openbabel import pybel
 from rdkit import Chem, DataStructs
 from rdkit.Chem import MACCSkeys
+from rdkit.Chem import AllChem
 from rdkit.Chem.rdMolDescriptors import (GetHashedAtomPairFingerprintAsBitVect,
                                          GetMorganFingerprintAsBitVect,
                                          GetHashedTopologicalTorsionFingerprintAsBitVect)
@@ -81,7 +82,8 @@ class Fingerprint:
 
         :param nbits: Number of folded bits
         """
-        bv = GetHashedAtomPairFingerprintAsBitVect(mol, nBits=nbits).ToList()
+        gen = AllChem.GetAtomPairGenerator(fpSize=nbits)
+        bv = gen.GetFingerprint(mol).ToList()
         values = dict(zip([f'AtomPair_{i + 1}' for i in range(nbits)], bv))
         return values
 
@@ -91,7 +93,8 @@ class Fingerprint:
 
         :param nbits: Number of folded bits
         """
-        bv = GetHashedTopologicalTorsionFingerprintAsBitVect(mol, nBits=nbits)
+        gen = AllChem.GetTopologicalTorsionGenerator(fpSize=nbits)
+        bv = gen.GetFingerprint(mol).ToList()
         values = dict(zip([f'TopolTorsions_{i + 1}' for i in range(nbits)], bv))
         return values
 
@@ -106,7 +109,8 @@ class Fingerprint:
                       dict, for a dict of bits turned on
         :param bits: Number of folded bits
         """
-        bv = GetMorganFingerprintAsBitVect(mol, radius=radius, nBits=nbits)
+        gen = AllChem.GetMorganGenerator(fpSize=nbits)
+        bv = gen.GetFingerprint(mol).ToList()
         values = dict(zip([f'Morgan{radius * 2}_{i + 1}' for i in range(nbits)], bv))
         return values
 
