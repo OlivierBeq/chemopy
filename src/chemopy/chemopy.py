@@ -162,7 +162,7 @@ DOI: 10.1093/bioinformatics/btt105
         # Insert lines for skipped molecules
         if len(skipped_mols):
             results = pd.DataFrame(np.insert(results.values, skipped_mols,
-                                             values=[np.NaN] * len(results.columns),
+                                             values=[np.nan] * len(results.columns),
                                              axis=0),
                                    columns=results.columns)
         return results

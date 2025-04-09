@@ -37,7 +37,7 @@ class Topology:
     @staticmethod
     def calculate_weiner(mol: Chem.Mol) -> float:
         """Get Weiner values of a molecule.
-    
+
         Or W.
         """
         return 1.0 / 2 * sum(sum(Chem.GetDistanceMatrix(mol)))
@@ -45,7 +45,7 @@ class Topology:
     @staticmethod
     def calculate_mean_weiner(mol: Chem.Mol) -> float:
         """Get Mean Weiner index of a molecule.
-    
+
         Or AW.
         """
         N = mol.GetNumAtoms()
@@ -55,7 +55,7 @@ class Topology:
     @staticmethod
     def calculate_balaban(mol: Chem.Mol) -> float:
         """Get Balaban index of a molecule.
-    
+
         Or J.
         """
         adjMat = Chem.GetAdjacencyMatrix(mol)
@@ -93,7 +93,7 @@ class Topology:
     @staticmethod
     def calculate_diameter(mol: Chem.Mol) -> float:
         """Get largest value of the distance matrix.
-    
+
         Or diametert.
         From Petitjean, M. J. Chem. Inf. Comput. Sci. 1992, 32, 4, 331-337.
         """
@@ -103,7 +103,7 @@ class Topology:
     @staticmethod
     def calculate_radius(mol: Chem.Mol) -> float:
         """Get radius based on topology.
-    
+
         Or radiust.
         From Petitjean, M. J. Chem. Inf. Comput. Sci. 1992, 32, 4, 331-337.
         """
@@ -116,7 +116,7 @@ class Topology:
     @staticmethod
     def calculate_petitjean(mol: Chem.Mol) -> float:
         """Get Petitjean based on topology.
-    
+
         Or petitjeant.
         """
         diameter = Topology.calculate_diameter(mol)
@@ -126,7 +126,7 @@ class Topology:
     @staticmethod
     def calculate_xu_index(mol: Chem.Mol) -> float:
         """Get Xu index.
-    
+
         Or Xu.
         """
         nAT = mol.GetNumAtoms()
@@ -144,7 +144,7 @@ class Topology:
     @staticmethod
     def calculate_gutman_topo(mol: Chem.Mol) -> float:
         """Get Gutman molecular topological simple vertex index.
-    
+
         Or GMTI.
         """
         nAT = mol.GetNumAtoms()
@@ -159,7 +159,7 @@ class Topology:
     @staticmethod
     def calculate_polarity_number(mol: Chem.Mol) -> float:
         """Get Polarity number.
-    
+
         Or Pol.
         """
         Distance = Chem.GetDistanceMatrix(mol)
@@ -169,7 +169,7 @@ class Topology:
     @staticmethod
     def calculate_pogliani_index(mol: Chem.Mol) -> float:
         """Get Poglicani index.
-    
+
         Or DZ.
         From Pogliani L. J.Phys.Chem. (1996), 100,18065-18077.
         """
@@ -184,7 +184,7 @@ class Topology:
     @staticmethod
     def calculate_ipc(mol: Chem.Mol) -> float:
         """Get Bonchev-Trinajstic complexity index.
-    
+
         Or Ipc.
         From Bonchev D. & Trinajstic N., J. Chem. Phys. (1977) 67,4517-4533.
         """
@@ -193,7 +193,7 @@ class Topology:
     @staticmethod
     def calculate_bertzct(mol: Chem.Mol) -> float:
         """Get Bertz complexity index.
-    
+
         Or BertzCT.
         From Bertz S. H., J. Am. Chem. Soc. (1981) 103,3599-3601.
         """
@@ -202,7 +202,7 @@ class Topology:
     @staticmethod
     def calculate_harary(mol: Chem.Mol) -> float:
         """Get Harary number.
-    
+
         Or Thara.
         """
         Distance = np.array(Chem.GetDistanceMatrix(mol), 'd')
@@ -211,7 +211,7 @@ class Topology:
     @staticmethod
     def calculate_schiultz(mol: Chem.Mol) -> float:
         """Get Schiultz number.
-    
+
         Or Tsch.
         """
         Distance = np.array(Chem.GetDistanceMatrix(mol), 'd')
@@ -222,7 +222,7 @@ class Topology:
     @staticmethod
     def calculate_zagreb1(mol: Chem.Mol) -> float:
         """Get Zagreb index with order 1.
-    
+
         Or ZM1.
         """
         deltas = [x.GetDegree() for x in mol.GetAtoms()]
@@ -231,7 +231,7 @@ class Topology:
     @staticmethod
     def calculate_zagreb2(mol: Chem.Mol) -> float:
         """Get Zagreb index with order 2.
-    
+
         Or ZM2.
         """
         ke = [x.GetBeginAtom().GetDegree() * x.GetEndAtom().GetDegree() for x in mol.GetBonds()]
@@ -240,7 +240,7 @@ class Topology:
     @staticmethod
     def calculate_mzagreb1(mol: Chem.Mol) -> float:
         """Get Modified Zagreb index with order 1.
-    
+
         Or MZM1.
         """
         deltas = [x.GetDegree() for x in mol.GetAtoms()]
@@ -253,7 +253,7 @@ class Topology:
     @staticmethod
     def calculate_mzagreb2(mol: Chem.Mol) -> float:
         """Get Modified Zagreb index with order 2.
-    
+
         Or MZM2.
         """
         cc = [x.GetBeginAtom().GetDegree() * x.GetEndAtom().GetDegree() for x in mol.GetBonds()]
@@ -268,7 +268,7 @@ class Topology:
     @staticmethod
     def calculate_quadratic(mol: Chem.Mol) -> float:
         """Get Quadratic index.
-    
+
         Or Qindex.
         """
         M = Topology.calculate_zagreb1(mol)
@@ -278,7 +278,7 @@ class Topology:
     @staticmethod
     def calculate_platt(mol: Chem.Mol) -> float:
         """Get Platt number.
-    
+
         Or Platt.
         """
         cc = [x.GetBeginAtom().GetDegree() + x.GetEndAtom().GetDegree() - 2 for x in mol.GetBonds()]
@@ -287,7 +287,7 @@ class Topology:
     @staticmethod
     def calculate_simple_topo_index(mol: Chem.Mol) -> float:
         """Get the logarithm of the simple topological index.
-    
+
         Or Sito.
         From Narumi H., MATCH (Comm. Math. Comp. Chem.), (1987), 22,195-207.
         """
@@ -301,7 +301,7 @@ class Topology:
     @staticmethod
     def calculate_harmonic_topo_index(mol: Chem.Mol) -> float:
         """Get harmonic topological index.
-    
+
         Or Hato.
         From Narumi H., MATCH (Comm. Math. Comp. Chem.), (1987), 22,195-207.
         """
@@ -318,7 +318,7 @@ class Topology:
     @staticmethod
     def calculate_geometric_topo_index(mol: Chem.Mol) -> float:
         """Get Geometric topological index.
-    
+
         Or Geto.
         From Narumi H., MATCH (Comm. Math. Comp. Chem.), (1987), 22,195-207.
         """
@@ -336,7 +336,7 @@ class Topology:
     @staticmethod
     def calculate_arithmetic_topo_index(mol: Chem.Mol) -> float:
         """Get Arithmetic topological index.
-    
+
         Or Arto.
         From Narumi H., MATCH (Comm. Math. Comp. Chem.), (1987), 22,195-207.
         """
@@ -348,7 +348,7 @@ class Topology:
     @staticmethod
     def calculate_mol_size_total_inf(mol: Chem.Mol) -> float:
         """Get total information index on molecular size.
-    
+
         Or ISIZ.
         """
         Hmol = Chem.AddHs(mol)
@@ -359,7 +359,7 @@ class Topology:
     @staticmethod
     def calculate_atom_comp_total_inf(mol: Chem.Mol) -> float:
         """Ge total information index on atomic composition.
-    
+
         Or TIAC.
         """
         Hmol = Chem.AddHs(mol)
@@ -382,7 +382,7 @@ class Topology:
     @staticmethod
     def calculate_distance_equality_total_inf(mol: Chem.Mol) -> float:
         """Get total information index on distance equality.
-    
+
         Or DET.
         """
         Distance = Chem.GetDistanceMatrix(mol)
@@ -394,7 +394,7 @@ class Topology:
             cc = 1. / 2 * sum(sum(Distance == i))
             if cc > 0:
                 res += cc * np.log2(cc)
-        return n * np.log2(n) - res if n > 0 else np.NaN
+        return n * np.log2(n) - res if n > 0 else np.nan
 
     @staticmethod
     def _calculate_entropy(Probability: Iterable[float]) -> float:
@@ -408,7 +408,7 @@ class Topology:
     @staticmethod
     def calculate_distance_equality_mean_inf(mol: Chem.Mol) -> float:
         """Get the mean information index on distance equality.
-    
+
         Or IDE.
         """
         Distance = Chem.GetDistanceMatrix(mol)
@@ -426,7 +426,7 @@ class Topology:
     @staticmethod
     def calculate_vertex_equality_total_inf(mol: Chem.Mol) -> float:
         """Get the total information index on vertex equality.
-    
+
         Or IVDE.
         """
         deltas = [x.GetDegree() for x in mol.GetAtoms()]
@@ -445,7 +445,7 @@ class Topology:
     @staticmethod
     def _hall_kier_deltas(mol: Chem.Mol, skipHs: bool = True) -> List[float]:
         """calculate_ Kier & Hall valence delta-values for molecular connectivity.
-    
+
         From Kier L. and Hall L., J. Pharm. Sci. (1983), 72(10),1170-1173.
         """
         global periodicTable
@@ -466,10 +466,10 @@ class Topology:
     @staticmethod
     def calculate_simple_topo_vindex(mol: Chem.Mol) -> float:
         """Get the logarithm of the simple topological index.
-    
+
         Or Sitov.
         From Narumi H., MATCH (Comm. Math. Comp. Chem.), (1987), 22,195-207.
-    
+
         Kier and Hall's valence delta-values are used in place of atom degrees.
         From Kier L. and Hall L., J. Pharm. Sci. (1983), 72(10),1170-1173.
         """
@@ -483,10 +483,10 @@ class Topology:
     @staticmethod
     def calculate_harmonic_topo_vindex(mol: Chem.Mol) -> float:
         """Get harmonic topological index.
-    
+
         Or Hatov.
         From Narumi H., MATCH (Comm. Math. Comp. Chem.), (1987), 22,195-207.
-    
+
         Kier and Hall's valence delta-values are used in place of atom degrees.
         From Kier L. and Hall L., J. Pharm. Sci. (1983), 72(10),1170-1173.
         """
@@ -501,10 +501,10 @@ class Topology:
     @staticmethod
     def calculate_geometric_topo_vindex(mol: Chem.Mol) -> float:
         """Get Geometric topological index.
-    
+
         Or Getov.
         From Narumi H., MATCH (Comm. Math. Comp. Chem.), (1987), 22,195-207.
-    
+
         Kier and Hall's valence delta-values are used in place of atom degrees.
         From Kier L. and Hall L., J. Pharm. Sci. (1983), 72(10),1170-1173.
         """
@@ -520,7 +520,7 @@ class Topology:
     @staticmethod
     def calculate_gravitational_topo_index(mol: Chem.Mol) -> float:
         """Get Gravitational topological index based on topological distance.
-    
+
         Or Gravto
         From Katritzky, A. J. Phys. Chem., (1996), 100,10400-10407.
         """
@@ -537,7 +537,7 @@ class Topology:
     @staticmethod
     def calculate_gutman_vtopo(mol: Chem.Mol) -> float:
         """Get molecular topological index based on valence vertex degree.
-    
+
         Or GMTIV.
         From Gutman,I. J. Chem. Inf. Comput. Sci., (1994), 34,1037-1039.
         """
@@ -550,7 +550,7 @@ class Topology:
             for j in range(i + 1, nAT):
                 res += deltas[i] * deltas[j] * Distance[i, j]
         return np.log10(res)
-    
+
     def get_all(mol: Chem.Mol) -> dict:
         """Get all (35) constitutional descriptors."""
         result = {}

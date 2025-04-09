@@ -37,9 +37,9 @@ class QuantumChemistry:
     @staticmethod
     def read_file(filename: str) -> dict:
         """Read basic quantum chemistry descriptors from an .arc file."""
-        inputdict = {'Hf': np.NaN, 'ET': np.NaN, 'mu': np.NaN, 'EHomo': np.NaN, 'ELumo': np.NaN,
-                     'ESomo': np.NaN, 'EaSomo': np.NaN, 'EaLumo': np.NaN, 'EbSomo': np.NaN, 'EbLumo': np.NaN,
-                     'mMw': np.NaN, 'CoArea': np.NaN, 'CoVolume': np.NaN}
+        inputdict = {'Hf': np.nan, 'ET': np.nan, 'mu': np.nan, 'EHomo': np.nan, 'ELumo': np.nan,
+                     'ESomo': np.nan, 'EaSomo': np.nan, 'EaLumo': np.nan, 'EbSomo': np.nan, 'EbLumo': np.nan,
+                     'mMw': np.nan, 'CoArea': np.nan, 'CoVolume': np.nan}
         f = open(filename, 'r')
         for line in f.readlines():
             value = line[10:34].strip()
