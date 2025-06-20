@@ -121,16 +121,17 @@ class MopacInputFile:
 
     periodic_table = Chem.GetPeriodicTable()
 
-    def __init__(self, path:str, method='PM7', version='2016'):
+    def __init__(self, path:str, method='PM7', version='2016', opt: str=''):
         """Create an instance of a MOPAC input file."""
         self.path = path
         self.method = method
         self.version = version
+        self.opt = opt
 
     def open(self):
         """Open the handle"""
         self.handle = open(self.path, 'w')
-        self.handle.write(self.method + (' PRTCHAR ' if self.version == '2016' else ''))
+        self.handle.write(self.method + (' PRTCHAR ' if self.version == '2016' else ' ') + self.opt)
 
     def write(self, mol: Chem.Mol, conf_id: int = -1):
         """Write a molecule to the input MOPAC file.
@@ -196,7 +197,7 @@ class MopacResultDir:
 
 
 def format_conversion(inputmol: Chem.Mol,
-                      method='PM7', version='2016',
+                      method='PM7', version='2016', opt='',
                       outfile=None, outdir=None,
                       ) -> Tuple[MopacResultDir, str]:
     """Prepare a molecule to be optimized by MOPAC.
@@ -210,8 +211,9 @@ def format_conversion(inputmol: Chem.Mol,
     3. the conformer is converted to a first MOPAC input file with OpenBabel,
     4. semi-empirical method and MOPAC version is added to the MOPAC input file.
 
-    :param method: MOPAC semi-empirical method to be used for molecular geometry oprimization
+    :param method: MOPAC semi-empirical method to be used for molecular geometry optimization
     :param version: version of MOPAC to use
+    :param opt: optimizations (e.g. tighter SCF convergence criteria)
     :param outfile: name of the output the MOPAC input file
     :param outdir: directory where to create the MOPAC input file
         If not specified, a temporary directory is created but
@@ -232,7 +234,7 @@ def format_conversion(inputmol: Chem.Mol,
     running_dir = MopacResultDir().open() if outdir is None else outdir
     mpo_name = 'temp' if outfile is None else outfile
     # Step 3: create MOPAC input file
-    with MopacInputFile(os.path.join(running_dir.path, f'{mpo_name}.dat'), method=method, version=version) as output_file:
+    with MopacInputFile(os.path.join(running_dir.path, f'{mpo_name}.dat'), method=method, version=version, opt=opt) as output_file:
         output_file.write(inputmol)
     return running_dir, f'{mpo_name}.dat'
 
@@ -308,7 +310,7 @@ def is_method_supported_by_mopac(method: str, version: str) -> bool:
     return str(method) in MOPAC_CONFIG[f'{version}'][1]
 
 
-def get_arc_file(inputmol: Chem.Mol, method: str = 'PM7', version: str = '2016',
+def get_arc_file(inputmol: Chem.Mol, method: str = 'PM7', version: str = '2016', opt: str= '',
                  verbose: bool = True, exit_on_fail: bool = False,
                  ) -> Union[Tuple[MopacResultDir, str], None]:
     """Optimize molecule geometry with MOPAC.
@@ -316,6 +318,7 @@ def get_arc_file(inputmol: Chem.Mol, method: str = 'PM7', version: str = '2016',
     :param inputmol: molecule to optimize
     :param method: semi-empirical method to apply
     :param version: version of MOPAC to be used
+    :param opt: optimizations (e.g. tighter SCF convergence criteria)
     :param verbose: whether to print progress messages
     :param exit_on_fail: if False, if a method fails at generating
                          a structure, others are tried from most to
@@ -325,7 +328,7 @@ def get_arc_file(inputmol: Chem.Mol, method: str = 'PM7', version: str = '2016',
              None otherwise.
     """
     # Create proper input file
-    dir_, dat_file = format_conversion(inputmol, method, version)
+    dir_, dat_file = format_conversion(inputmol, method, version, opt)
     # Ensure dat file exists
     full_path = os.path.join(dir_.path, dat_file)
     if not os.path.isfile(full_path):
