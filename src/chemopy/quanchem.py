@@ -142,8 +142,8 @@ class QuantumChemistry:
         res['qTnc'] = sum(i for i in temp if i < 0)
         res['qMac'] = np.mean([np.abs(i) for i in temp])
         res['qTac'] = sum(np.abs(i) for i in temp)
-        res['qRpc'] = QuantumChemistry._get_max(temp) / res['qTpc']
-        res['qRnc'] = QuantumChemistry._get_min(temp) / res['qTnc']
+        res['qRpc'] = QuantumChemistry._get_max(temp) / res['qTpc'] if res['qTpc'] != 0 else np.nan
+        res['qRnc'] = QuantumChemistry._get_min(temp) / res['qTnc'] if res['qTnc'] != 0 else np.nan
         return res
 
     @staticmethod
@@ -163,9 +163,9 @@ class QuantumChemistry:
         dict_ = {}
         dict_.update(inputdict)
         dict_['GAP'] = ELumo - EHomo
-        dict_['S'] = 2. / (ELumo - EHomo)
+        dict_['S'] = 2. / (ELumo - EHomo) if (ELumo - EHomo) != 0 else np.nan
         dict_['eta'] = (ELumo - EHomo) / 2.0
-        dict_['fHL'] = EHomo / ELumo
+        dict_['fHL'] = EHomo / ELumo if ELumo != 0 else np.nan
         dict_['IP'] = -EHomo
         dict_['EA'] = -ELumo
         dict_['xmu'] = (-ELumo - EHomo) / 2.0
