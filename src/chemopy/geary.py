@@ -7,7 +7,7 @@
 import numpy as np
 from rdkit import Chem
 
-from .atomproperty import get_relative_atomic_property
+from .atom_property import get_relative_atomic_property
 
 
 class Geary:

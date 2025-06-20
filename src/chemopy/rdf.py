@@ -8,7 +8,7 @@ import math
 import numpy as np
 from rdkit import Chem
 
-from .atomproperty import get_relative_atomic_property
+from .atom_property import get_relative_atomic_property
 from .geo_opt import read_coordinates
 from .utils import get_geometrical_distance_matrix, get_r
 

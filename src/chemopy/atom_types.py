@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #####
-# $Id: atomtypes.py 997 2009-02-25 06:12:43Z glandrum $
+# $Id: atom_types.py 997 2009-02-25 06:12:43Z glandrum $
 #
 # Copyright (C) 2002-2006  greg Landrum and Rational Discovery LLC
 #

@@ -8,7 +8,7 @@ import numpy.linalg
 from rdkit import Chem
 from natsort import natsorted
 
-from .atomproperty import get_relative_atomic_property
+from .atom_property import get_relative_atomic_property
 
 
 class BCUT:

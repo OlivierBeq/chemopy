@@ -12,7 +12,7 @@ import numpy as np
 from rdkit import Chem
 from rdkit.Chem.EState import Fingerprinter as ESFP
 
-from . import atomtypes as ATEstate
+from . import atom_types as ATEstate
 
 class EState:
     """Electrotopological descriptors and fingerprints."""
