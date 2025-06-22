@@ -33,11 +33,11 @@ pybel.ob.obErrorLog.StopLogging()
 class Atom:
     """Wrapper for atomic properties."""
 
-    def __init__(self, Coordinates: List[float]):
+    def __init__(self, coordinates: List[float]):
         """Initialize an Atom object."""
         self.pos = vector3d.Vector3D()
         self.radius = 0.0
-        self.coordinates = Coordinates
+        self.coordinates = coordinates
         self.element = ''
 
     def set_coordinates(self):
@@ -228,7 +228,12 @@ def format_conversion(inputmol: Chem.Mol,
     confs = list(inputmol.GetConformers())
     if not (len(confs) > 0 and confs[-1].Is3D()):
         inputmol = Chem.AddHs(inputmol)
-        rdDistGeom.EmbedMolecule(inputmol, rdDistGeom.ETKDGv3())
+        success = rdDistGeom.EmbedMolecule(inputmol, rdDistGeom.ETKDGv3()) > -1
+        if not success:
+            inputmol = embed_mol_with_openbabel(inputmol)
+            success = inputmol is not None
+        if not success:
+            raise RuntimeError('Molecular geometry optimization failed.')
     else:
         inputmol = Chem.AddHs(inputmol, addCoords=True)
     running_dir = MopacResultDir().open() if outdir is None else outdir
@@ -375,7 +380,7 @@ def get_arc_file(inputmol: Chem.Mol, method: str = 'PM7', version: str = '2016',
             if verbose:
                 print(f'Attempting optimization with {methods_tried[0]}')  # noqa T001
             # Create proper input file
-            new_attempt = get_arc_file(inputmol, methods_tried[0], version, verbose, exit_on_fail=True)
+            new_attempt = get_arc_file(inputmol, methods_tried[0], version, opt, verbose, exit_on_fail=True)
             if new_attempt is not None:
                 return new_attempt
 
@@ -442,3 +447,24 @@ def get_optimized_mol(arc_file: str = None, inputmol: Chem.Mol = None,
             mol = Chem.MolFromMolBlock(pybelmol.write(format='sdf'))
         del block
         return mol
+
+def embed_mol_with_openbabel(mol: Chem.Mol, opt: bool = True, ff: str = 'mmff94', n_steps: int = 50) -> Chem.Mol:
+    """Embed a molecule with openbabel.
+
+    :param mol: molecule to embed
+    :param opt: should local structure optimization be performed
+    :param ff: forcefield to be used, one of {mmff94, uff, ghemical}
+    :param n_steps: number of steps of optimization performed (with no regards to `opt`)
+    """
+    # Parse from RDKit
+    pmol = pybel.readstring("mol", Chem.MolToMolBlock(mol))
+    # Embed
+    pmol.make3D(ff, n_steps)
+    # Optimize structure locally
+    if opt:
+        pmol.localopt()
+    # Convert back to RDKit
+    rdmol = Chem.MolFromMolBlock(pmol.write(format='mol'), removeHs=False)
+    return rdmol
+
+
