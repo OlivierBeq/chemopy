@@ -362,7 +362,7 @@ def get_arc_file(inputmol: Chem.Mol, method: str = 'PM7', version: str = '2016',
     else:  # neither success nor exit_on_fail
         if verbose:
             print(f'Geometry optimization failed with {method}')  # noqa T001
-        methods_tried = MOPAC_CONFIG[f'{version}'][1]
+        methods_tried = MOPAC_CONFIG[f'{version}'][1].copy()
         # Remove the method that was just used
         methods_tried.remove(method)
         # Try all possible methods, from most to least accurate
