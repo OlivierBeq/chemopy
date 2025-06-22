@@ -258,7 +258,7 @@ def run_mopac(filename: str, version: str = '2016') -> int:
     # Run optimization
     mopac_bin = MOPAC_CONFIG[str(version)][0]
     try:
-        retcode = subprocess.call(f'{mopac_bin} {filename}', shell=False,
+        retcode = subprocess.call(f'{mopac_bin} {filename}', shell=True,
                                   stdin=subprocess.DEVNULL,
                                   stdout=subprocess.DEVNULL,
                                   stderr=subprocess.DEVNULL)  # noqa: S603
@@ -358,6 +358,7 @@ def get_arc_file(inputmol: Chem.Mol, method: str = 'PM7', version: str = '2016',
     elif exit_on_fail:
         if verbose:
             print(f'Geometry optimization failed with {method}')  # noqa T001
+        dir_.close()
         return
     else:  # neither success nor exit_on_fail
         if verbose:
@@ -375,6 +376,7 @@ def get_arc_file(inputmol: Chem.Mol, method: str = 'PM7', version: str = '2016',
                         print('Molecule could not be optimized.')  # noqa T001
                     else:
                         warnings.warn('Molecule could not be optimized', RuntimeWarning)
+                    dir_.close()
                     return
             skip_first_time = False
             if verbose:
