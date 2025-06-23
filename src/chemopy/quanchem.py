@@ -3,6 +3,7 @@
 
 """Quantum chemistry descriptors."""
 
+import re
 from typing import List, Tuple
 
 from rdkit import Chem
@@ -51,24 +52,25 @@ class QuantumChemistry:
             if value == "DIPOLE":
                 inputdict['mu'] = float(line.strip().upper().split('=')[1].split('DEBYE')[0])
             if value.startswith("HOMO LUMO ENERGIES"):
-                inputdict['EHomo'] = float(line.split('=')[1].strip().split()[0])
-                inputdict['ELumo'] = float(line.split('=')[1].strip().split()[1])
+                values = re.match(r'(-?\d+\.\d{3})\s*(-?\d+\.\d{3})', line.split('=')[1].strip())
+                inputdict['EHomo'] = float(values.group(1))
+                inputdict['ELumo'] = float(values.group(2))
             elif value.startswith("HOMO (SOMO) LUMO"):
-                data = line.split('=')[1].strip().translate(str.maketrans('', '', '()')).split()
-                data = list(filter(None, data))
-                inputdict['EHomo'] = float(data[0])
-                inputdict['ESomo'] = float(data[1])
-                inputdict['ELumo'] = float(data[2])
+                data = line.split('=')[1].strip().translate(str.maketrans('', '', '()'))
+                values = re.match(r'(-?\d+\.\d{3})\s*(-?\d+\.\d{3})\s*(-?\d+\.\d{3})', data)
+                inputdict['EHomo'] = float(values.group(1))
+                inputdict['ESomo'] = float(values.group(2))
+                inputdict['ELumo'] = float(values.group(3))
             elif value.startswith("ALPHA SOMO LUMO"):
-                data = line.split('=')[1].strip().translate(str.maketrans('', '', '()')).split()
-                data = list(filter(None, data))
-                inputdict['EaSomo'] = float(data[0])
-                inputdict['EaLumo'] = float(data[1])
+                data = line.split('=')[1].strip().translate(str.maketrans('', '', '()'))
+                values = re.match(r'(-?\d+\.\d{3})\s*(-?\d+\.\d{3})', data)
+                inputdict['EaSomo'] = float(values.group(1))
+                inputdict['EaLumo'] = float(values.group(2))
             elif value.startswith("BETA  SOMO LUMO"):
-                data = line.split('=')[1].strip().translate(str.maketrans('', '', '()')).split()
-                data = list(filter(None, data))
-                inputdict['EbSomo'] = float(data[0])
-                inputdict['EbLumo'] = float(data[1])
+                data = line.split('=')[1].strip().translate(str.maketrans('', '', '()'))
+                values = re.match(r'(-?\d+\.\d{3})\s*(-?\d+\.\d{3})', data)
+                inputdict['EbSomo'] = float(values.group(1))
+                inputdict['EbLumo'] = float(values.group(2))
             if line[10:26] == "MOLECULAR WEIGHT":
                 inputdict['mMw'] = float(line[-12:-1])
             elif value == "COSMO AREA":
