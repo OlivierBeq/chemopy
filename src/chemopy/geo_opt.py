@@ -247,7 +247,7 @@ def format_conversion(inputmol: Chem.Mol,
     return running_dir, f'{mpo_name}.dat'
 
 
-def run_mopac(filename: str, version: str = '2016', n_jobs: int = 1) -> int:
+def run_mopac(filename: str, version: str = '2016', n_jobs: int = 1, affinity: str | list[int] = None) -> int:
     """Run the MOPAC on a well-prepared input file.
 
     Parse default MOPAC config file if not read already.
@@ -255,6 +255,9 @@ def run_mopac(filename: str, version: str = '2016', n_jobs: int = 1) -> int:
     :param filename: path to the well-prepared MOPAC input file
     :param version: MOPAC version to be used
     :param n_jobs: number of jobs to run in parallel
+    :param affinity: affinity for a core to define for the MOPAC process. If None, randomly determined based on `n_jobs`.
+    On Windows systems, a binary encoded mask (e.g. '00111010' for cores 4, 12, 16, and 20);
+    on UNIX, a 0-indexed list of cores indices (e.g. [3, 11, 15, 19] for cores 4, 12, 16, and 20).
     """
     # Ensure all requirements are set
     if not is_mopac_version_available(version):
@@ -262,10 +265,15 @@ def run_mopac(filename: str, version: str = '2016', n_jobs: int = 1) -> int:
     # Ensure the executable runs on only one core
     n_cores = multiprocessing.cpu_count()
     if platform.startswith('win32'):
-        mask = list('1' * n_jobs + '0' * (n_cores - n_jobs))
+        if affinity is not None:
+            # Ensure the affinity is Windows compatible
+            assert len(set(map(int, set(affinity))).difference({0, 1})) == 0, 'Not a Windows-compatible affinity.'
+            mask = affinity
+        else:
+            mask = list('1' * n_jobs + '0' * (n_cores - n_jobs))
         # Randomize the mask
-        mask = np.random.default_rng().shuffle(mask)
-        precmd = 'START /AFFINITY ' + hex(int(mask, 2))
+        np.random.default_rng().shuffle(mask)
+        precmd = 'START /AFFINITY ' + hex(int(''.join(mask), 2))
     elif platform in ('linux', 'darwin'):
         # Draw random core indices
         core_ids = np.random.default_rng().integers(0, n_cores, size=n_jobs)
@@ -400,7 +408,8 @@ def get_arc_file(inputmol: Chem.Mol, method: str = 'PM7', version: str = '2016',
             if verbose:
                 print(f'Attempting optimization with {methods_tried[0]}')  # noqa T001
             # Create proper input file
-            new_attempt = get_arc_file(inputmol, methods_tried[0], version, opt, n_jobs, verbose, exit_on_fail=True)
+            new_attempt = get_arc_file(inputmol=inputmol, method=methods_tried[0], version=version,
+                                       opt=opt, n_jobs=n_jobs, verbose=verbose, exit_on_fail=True)
             if new_attempt is not None:
                 return new_attempt
 
@@ -431,7 +440,7 @@ def get_optimized_mol(arc_file: str = None, inputmol: Chem.Mol = None,
     :return: optimized rdkit molecule on success, None otherwise.
     """
     if arc_file is None and inputmol is None:
-        raise ValueError('Either ARC file or inputmolecule must be provided.')
+        raise ValueError('Either ARC file or input molecule must be provided.')
     if arc_file is not None:
         mopac_out_dir = os.path.dirname(arc_file)
         mopac_out_path = get_file_in_dir_from_ext(mopac_out_dir, '.out')
@@ -448,7 +457,7 @@ def get_optimized_mol(arc_file: str = None, inputmol: Chem.Mol = None,
         del block
         return mol
     else:
-        res = get_arc_file(inputmol, method, version, verbose, False)
+        res = get_arc_file(inputmol=inputmol, method=method, version=version, verbose=verbose, exit_on_fail=False)
         if res is None:
             return None
         dir_, arc_file_ = res
@@ -486,5 +495,3 @@ def embed_mol_with_openbabel(mol: Chem.Mol, opt: bool = True, ff: str = 'mmff94'
     # Convert back to RDKit
     rdmol = Chem.MolFromMolBlock(pmol.write(format='mol'), removeHs=False)
     return rdmol
-
-
