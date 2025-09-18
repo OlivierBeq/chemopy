@@ -539,10 +539,14 @@ class Topology:
         """Get molecular topological index based on valence vertex degree.
 
         Or GMTIV.
-        From Gutman,I. J. Chem. Inf. Comput. Sci., (1994), 34,1037-1039.
+        From:
+        Gutman,I. J. Chem. Inf. Comput. Sci., (1994), 34,1087-1089.
+        DOI: 10.1021/ci00021a009
         """
-        mol_ = Chem.RemoveHs(mol)
-        nAT = mol_.GetNumAtoms()
+        params = Chem.RemoveHsParameters()
+        params.removeIsotopes = True
+        mol_ = Chem.RemoveHs(mol, params)
+        nAT = mol_.GetNumHeavyAtoms()
         deltas = Topology._hall_kier_deltas(mol_)
         Distance = Chem.GetDistanceMatrix(mol_)
         res = 0.0
