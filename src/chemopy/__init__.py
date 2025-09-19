@@ -10,4 +10,4 @@ from .fingerprint import Fingerprint # noqa: F401
 from .fingerprint3d import Fingerprint3D # noqa: F401
 
 
-__version__ = '1.0.10'
+__version__ = '1.0.11'
