@@ -7,12 +7,12 @@ Based on Hall, Money, Kier, J. Chem. Inf. Comput. Sci. (1991)
 doi: 10.1021/ci00001a012
 """
 
-
 import numpy as np
 from rdkit import Chem
 from rdkit.Chem.EState import Fingerprinter as ESFP
 
 from . import atom_types as ATEstate
+
 
 class EState:
     """Electrotopological descriptors and fingerprints."""
@@ -36,15 +36,15 @@ class EState:
                 N = EState._get_principle_quantum_number(atNum)
                 Is[i] = (4.0 / (N * N) * dv + 1) / d
         dists = Chem.GetDistanceMatrix(mol, useBO=0, useAtomWts=0)
-        dists += 1
-        accum = np.zeros(nAtoms, dtype=float)
-        for i in range(nAtoms):
-            for j in range(i + 1, nAtoms):
-                p = dists[i, j]
-                if p < 1e6:
-                    temp = (Is[i] - Is[j]) / (p * p)
-                    accum[i] += temp
-                    accum[j] -= temp
+        dists = dists + 1
+        # Vectorized equivalent of the reference i<j double loop: the contribution matrix
+        # C[i, j] = (Is[i]-Is[j]) / dists[i, j]^2 is antisymmetric (C[j, i] == -C[i, j]),
+        # so summing each full row reproduces the same accum[i] the pairwise loop built.
+        mask = dists < 1e6
+        np.fill_diagonal(mask, False)
+        diff = Is[:, None] - Is[None, :]
+        contributions = np.where(mask, diff / (dists * dists), 0.0)
+        accum = contributions.sum(axis=1)
         res = accum + Is
         return res
 
@@ -129,16 +129,16 @@ class EState:
         return max(EState._calculate_estate(mol)) - min(EState._calculate_estate(mol))
 
     @staticmethod
-    def calculate_estate_fingerprint(mol: Chem.Mol, implementation='rdkit', binary: bool = False) -> dict:
+    def calculate_estate_fingerprint(mol: Chem.Mol, implementation="rdkit", binary: bool = False) -> dict:
         """Calculate the sum of EState values for each EState atom type.
 
         :param implementation: either rdkit or chemopy. chemopy rounds
                                to the third decimal place but not rdkit.
         :param binary: should bineray values be returned instead of continous ones
         """
-        if implementation not in ['rdkit', 'chemopy']:
-            raise ValueError('Implementation of AtomTypeEState must be either rdkit or chemopy.')
-        if implementation == 'chemopy':
+        if implementation not in ["rdkit", "chemopy"]:
+            raise ValueError("Implementation of AtomTypeEState must be either rdkit or chemopy.")
+        if implementation == "chemopy":
             AT = ATEstate.get_atom_label(mol)
             Estate = EState._calculate_estate(mol)
             res = []
@@ -147,16 +147,16 @@ class EState:
                     res.append(0)
                 else:
                     res.append(sum(Estate[k] for k in i))
-            ESresult = {f'S{n + 1}': es for n, es in enumerate(res)}
+            ESresult = {f"S{n + 1}": es for n, es in enumerate(res)}
             if binary:
-                ESresult = {f'EStateFP_{i + 1}' : 0 if x == 0 else 1 for i, x in enumerate(ESresult.values())}
+                ESresult = {f"EStateFP_{i + 1}": 0 if x == 0 else 1 for i, x in enumerate(ESresult.values())}
             return ESresult
         else:
             temp = ESFP.FingerprintMol(mol)
             if binary:
-                res = {f'EStateFP_{i + 1}' : 0 if x == 0 else 1 for i, x in enumerate(temp[0])}
+                res = {f"EStateFP_{i + 1}": 0 if x == 0 else 1 for i, x in enumerate(temp[0])}
             else:
-                res = {f'S{i + 1}': j for i, j in enumerate(temp[1])}
+                res = {f"S{i + 1}": j for i, j in enumerate(temp[1])}
             return res
 
     @staticmethod
@@ -168,7 +168,7 @@ class EState:
         temp = ESFP.FingerprintMol(mol)
         res = {}
         for i, j in enumerate(temp[0]):
-            res[f'Sfinger{i + 1}'] = j
+            res[f"Sfinger{i + 1}"] = j
         return res
 
     @staticmethod
@@ -184,7 +184,7 @@ class EState:
                 res.append(max(Estate[k] for k in i))
         ESresult = {}
         for n, es in enumerate(res):
-            ESresult[f'Smax{n + 1}'] = es
+            ESresult[f"Smax{n + 1}"] = es
         return ESresult
 
     @staticmethod
@@ -200,28 +200,64 @@ class EState:
                 res.append(min(Estate[k] for k in i))
         ESresult = {}
         for n, es in enumerate(res):
-            ESresult[f'Smin{n + 1}'] = es
+            ESresult[f"Smin{n + 1}"] = es
         return ESresult
 
     @staticmethod
     def get_all_descriptors(mol: Chem.Mol) -> dict:
-        """Calculate all (8) EState descriptors."""
-        result = {}
-        result.update({'Shev': EState.calculate_heavy_atom_estate(mol)})
-        result.update({'Scar': EState.calculate_c_atom_estate(mol)})
-        result.update({'Shal': EState.calculate_halogen_estate(mol)})
-        result.update({'Shet': EState.calculate_hetero_estate(mol)})
-        result.update({'Save': EState.calculate_average_estate(mol)})
-        result.update({'Smax': EState.calculate_max_estate(mol)})
-        result.update({'Smin': EState.calculate_min_estate(mol)})
-        result.update({'DS': EState.calculate_diff_max_min_estate(mol)})
+        """Calculate all (8) EState descriptors.
+
+        The reference implementation recomputes `_calculate_estate` (an O(nAtoms^2)
+        distance-weighted accumulation) independently for each of the 8 descriptors below
+        (~15 calls total, since `calculate_hetero_estate`/`calculate_halogen_estate` each
+        call it multiple times themselves); here it is computed at most twice (once per
+        `skipH` variant) and reused, exactly reproducing each descriptor's original formula.
+        """
+        estate_no_h = EState._calculate_estate(mol, skipH=True)
+        estate_with_h = EState._calculate_estate(mol, skipH=False)
+        atomic_nums = np.array([atom.GetAtomicNum() for atom in Chem.AddHs(mol).GetAtoms()])
+
+        def atom_type_sum(atomic_num):
+            mask = atomic_nums == atomic_num
+            return float(estate_with_h[mask].sum()) if mask.any() else 0.0
+
+        Ntotal = float(estate_no_h.sum())
+        NC = atom_type_sum(6)
+        NH = atom_type_sum(1)
+        Smax = float(estate_no_h.max())
+        Smin = float(estate_no_h.min())
+        result = {
+            "Shev": Ntotal,
+            "Scar": NC,
+            "Shal": atom_type_sum(9) + atom_type_sum(17) + atom_type_sum(35) + atom_type_sum(53),
+            "Shet": Ntotal - NC - NH,
+            "Save": Ntotal / mol.GetNumAtoms(),
+            "Smax": Smax,
+            "Smin": Smin,
+            "DS": Smax - Smin,
+        }
         return result
 
     @staticmethod
     def get_all_fps(mol: Chem.Mol) -> dict:
         """Calculate all (316) EState descriptors."""
+        # calculate_max_atom_type_estate/calculate_min_atom_type_estate each independently
+        # recompute get_atom_label()/_calculate_estate(); compute both once here instead.
+        AT = ATEstate.get_atom_label(mol)
+        Estate = EState._calculate_estate(mol)
+        max_result = {}
+        min_result = {}
+        for n, i in enumerate(AT):
+            if i == []:
+                max_result[f"Smax{n + 1}"] = 0
+                min_result[f"Smin{n + 1}"] = 0
+            else:
+                values = [Estate[k] for k in i]
+                max_result[f"Smax{n + 1}"] = max(values)
+                min_result[f"Smin{n + 1}"] = min(values)
+
         result = {}
         result.update(EState.calculate_estate_fingerprint(mol))
-        result.update(EState.calculate_max_atom_type_estate(mol))
-        result.update(EState.calculate_min_atom_type_estate(mol))
+        result.update(max_result)
+        result.update(min_result)
         return result
