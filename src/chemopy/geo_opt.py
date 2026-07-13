@@ -19,12 +19,11 @@ from rdkit.rdBase import BlockLogs
 from rdkit.Chem import rdDistGeom
 
 from . import vector3d
-from .utils import (get_file_in_dir_from_ext, get_lastest_created_file, is_in_subdirectory_tree)
-
+from .utils import get_file_in_dir_from_ext, get_lastest_created_file, is_in_subdirectory_tree
 
 
 # Default OpenMOPAC configuration
-MOPAC_CONFIG = {'2016': ['mopac', ['PM7', 'PM6', 'PM3', 'AM1', 'MNDO']]}
+MOPAC_CONFIG = {"2016": ["mopac", ["PM7", "PM6", "PM3", "AM1", "MNDO"]]}
 
 
 # Disable openbabel logging
@@ -39,7 +38,7 @@ class Atom:
         self.pos = vector3d.Vector3D()
         self.radius = 0.0
         self.coordinates = coordinates
-        self.element = ''
+        self.element = ""
 
     def set_coordinates(self):
         """Parse raw ARC coordinates."""
@@ -65,15 +64,35 @@ class Atom:
 
     def set_radius(self):
         """Set radius."""
-        radii = {'H': 1.20, 'N': 1.55, 'Na': 2.27, 'Cu': 1.40, 'Cl': 1.75, 'C': 1.70,
-                 'O': 1.52, 'I': 1.98, 'P': 1.80, 'B': 1.85, 'Br': 1.85, 'S': 1.80, 'Se': 1.90,
-                 'F': 1.47, 'Fe': 1.80, 'K': 2.75, 'Mn': 1.73, 'Mg': 1.73, 'Zn': 1.39, 'Hg': 1.8,
-                 'Li': 1.8, '.': 1.8}
+        radii = {
+            "H": 1.20,
+            "N": 1.55,
+            "Na": 2.27,
+            "Cu": 1.40,
+            "Cl": 1.75,
+            "C": 1.70,
+            "O": 1.52,
+            "I": 1.98,
+            "P": 1.80,
+            "B": 1.85,
+            "Br": 1.85,
+            "S": 1.80,
+            "Se": 1.90,
+            "F": 1.47,
+            "Fe": 1.80,
+            "K": 2.75,
+            "Mn": 1.73,
+            "Mg": 1.73,
+            "Zn": 1.39,
+            "Hg": 1.8,
+            "Li": 1.8,
+            ".": 1.8,
+        }
         temp = self.get_element()
         if temp in radii.keys():
             self.radius = radii[temp]
         else:
-            self.radius = radii['.']
+            self.radius = radii["."]
 
     def get_radius(self):
         """Get the radius of the atom."""
@@ -102,17 +121,15 @@ def read_coordinates(arc_file: str):
     :param arc_file: Path to MOPAC .arc file
     """
     res = []
-    with open(arc_file, 'r') as f:
+    with open(arc_file, "r") as f:
         templine = f.readlines()
     for line in range(len(templine)):
-        if templine[line][-7: -1] == "CHARGE":
+        if templine[line][-7:-1] == "CHARGE":
             k = line
             break
-    for i in templine[k + 4: len(templine) - 1]:
+    for i in templine[k + 4 : len(templine) - 1]:
         temp = i.split()
-        ElementCoordinate = [temp[0].strip(), temp[1].strip(),
-                             temp[3].strip(), temp[5].strip(),
-                             temp[-1].strip()]
+        ElementCoordinate = [temp[0].strip(), temp[1].strip(), temp[3].strip(), temp[5].strip(), temp[-1].strip()]
         res.append(ElementCoordinate)
     return res
 
@@ -122,7 +139,7 @@ class MopacInputFile:
 
     periodic_table = Chem.GetPeriodicTable()
 
-    def __init__(self, path:str, method='PM7', version='2016', opt: str=''):
+    def __init__(self, path: str, method="PM7", version="2016", opt: str = ""):
         """Create an instance of a MOPAC input file."""
         self.path = path
         self.method = method
@@ -131,8 +148,8 @@ class MopacInputFile:
 
     def open(self):
         """Open the handle"""
-        self.handle = open(self.path, 'w')
-        self.handle.write(self.method + (' PRTCHAR ' if self.version == '2016' else ' '))
+        self.handle = open(self.path, "w")
+        self.handle.write(self.method + (" PRTCHAR " if self.version == "2016" else " "))
 
     def write(self, mol: Chem.Mol, conf_id: int = -1):
         """Write a molecule to the input MOPAC file.
@@ -142,17 +159,17 @@ class MopacInputFile:
         """
         # If molecule is charged
         charge = Chem.GetFormalCharge(mol)
-        self.handle.write(f" CHARGE={'+' if charge > 0 else '-'}{charge}" if charge != 0 else '')
+        self.handle.write(f" CHARGE={'+' if charge > 0 else '-'}{charge}" if charge != 0 else "")
         if len(self.opt):
-            self.handle.write(' ' + self.opt)
-        self.handle.write('\n\n\n')
+            self.handle.write(" " + self.opt)
+        self.handle.write("\n\n\n")
         # Write atomic positions and set them all for optimization
         conf = mol.GetConformer(conf_id)
         for atom in mol.GetAtoms():
             index = atom.GetIdx()
             elem = self.periodic_table.GetElementSymbol(atom.GetAtomicNum())
             pos = conf.GetAtomPosition(index)
-            self.handle.write(f'{elem: <3}{pos.x:8.5f} 1 {pos.y:8.5f} 1 {pos.z:8.5f} 1\n')
+            self.handle.write(f"{elem: <3}{pos.x:8.5f} 1 {pos.y:8.5f} 1 {pos.z:8.5f} 1\n")
 
     def close(self):
         """Close the internal handle."""
@@ -176,7 +193,7 @@ class MopacResultDir:
         """
         if path is not None:
             if not os.path.isdir(path):
-                raise ValueError('Path should either be specified if the directory already exists or left blank.')
+                raise ValueError("Path should either be specified if the directory already exists or left blank.")
         self.already_exists = path is not None
         self.path = path
 
@@ -199,10 +216,14 @@ class MopacResultDir:
         self.close()
 
 
-def format_conversion(inputmol: Chem.Mol,
-                      method='PM7', version='2016', opt='',
-                      outfile=None, outdir=None,
-                      ) -> Tuple[MopacResultDir, str]:
+def format_conversion(
+    inputmol: Chem.Mol,
+    method="PM7",
+    version="2016",
+    opt="",
+    outfile=None,
+    outdir=None,
+) -> Tuple[MopacResultDir, str]:
     """Prepare a molecule to be optimized by MOPAC.
 
     The preparation goes as follows:
@@ -225,7 +246,7 @@ def format_conversion(inputmol: Chem.Mol,
     """
     # Ensure method and MOPAC version are compatible
     if not is_method_supported_by_mopac(method, version):
-        raise ValueError(f'Method {method} is not supported by MOPAC {version}.')
+        raise ValueError(f"Method {method} is not supported by MOPAC {version}.")
     # Step 1: add Hs
     # Step 2: generate conformer
     confs = list(inputmol.GetConformers())
@@ -236,18 +257,20 @@ def format_conversion(inputmol: Chem.Mol,
             inputmol = embed_mol_with_openbabel(inputmol)
             success = inputmol is not None
         if not success:
-            raise RuntimeError('Molecular geometry optimization failed.')
+            raise RuntimeError("Molecular geometry optimization failed.")
     else:
         inputmol = Chem.AddHs(inputmol, addCoords=True)
     running_dir = MopacResultDir().open() if outdir is None else outdir
-    mpo_name = 'temp' if outfile is None else outfile
+    mpo_name = "temp" if outfile is None else outfile
     # Step 3: create MOPAC input file
-    with MopacInputFile(os.path.join(running_dir.path, f'{mpo_name}.dat'), method=method, version=version, opt=opt) as output_file:
+    with MopacInputFile(
+        os.path.join(running_dir.path, f"{mpo_name}.dat"), method=method, version=version, opt=opt
+    ) as output_file:
         output_file.write(inputmol)
-    return running_dir, f'{mpo_name}.dat'
+    return running_dir, f"{mpo_name}.dat"
 
 
-def run_mopac(filename: str, version: str = '2016', n_jobs: int = 1, affinity: str | list[int] = None) -> int:
+def run_mopac(filename: str, version: str = "2016", n_jobs: int = 1, affinity: str | list[int] = None) -> int:
     """Run the MOPAC on a well-prepared input file.
 
     Parse default MOPAC config file if not read already.
@@ -261,32 +284,42 @@ def run_mopac(filename: str, version: str = '2016', n_jobs: int = 1, affinity: s
     """
     # Ensure all requirements are set
     if not is_mopac_version_available(version):
-        raise ValueError(f'MOPAC version {version} is not available. Check your MOPAC config file.')
-    # Ensure the executable runs on only one core
+        raise ValueError(f"MOPAC version {version} is not available. Check your MOPAC config file.")
+    # Ensure the executable is not requested to use more cores than are available
     n_cores = multiprocessing.cpu_count()
-    if platform.startswith('win32'):
+    if n_jobs > n_cores:
+        warnings.warn(f"Requested {n_jobs} jobs but only {n_cores} cores are available; clipping.", UserWarning)
+        n_jobs = n_cores
+    if platform.startswith("win32"):
         if affinity is not None:
             # Ensure the affinity is Windows compatible
-            assert len(set(map(int, set(affinity))).difference({0, 1})) == 0, 'Not a Windows-compatible affinity.'
+            assert len(set(map(int, set(affinity))).difference({0, 1})) == 0, "Not a Windows-compatible affinity."
             mask = affinity
         else:
-            mask = list('1' * n_jobs + '0' * (n_cores - n_jobs))
-        # Randomize the mask
-        np.random.default_rng().shuffle(mask)
-        precmd = 'START /AFFINITY ' + hex(int(''.join(mask), 2))
-    elif platform in ('linux', 'darwin'):
-        # Draw random core indices
-        core_ids = np.random.default_rng().integers(0, n_cores, size=n_jobs)
-        precmd = f'taskset --cpu-list ' + ','.join(map(str, core_ids))
+            mask = list("1" * n_jobs + "0" * (n_cores - n_jobs))
+            # Randomize the mask
+            np.random.default_rng().shuffle(mask)
+        precmd = "START /AFFINITY " + hex(int("".join(mask), 2))
+    elif platform in ("linux", "darwin"):
+        if affinity is not None:
+            core_ids = affinity
+        else:
+            # Draw distinct random core indices: sampling without replacement
+            # ensures n_jobs cores are actually engaged, never fewer due to collisions.
+            core_ids = np.random.default_rng().choice(n_cores, size=n_jobs, replace=False)
+        precmd = "taskset --cpu-list " + ",".join(map(str, core_ids))
     else:
-        raise RuntimeError(f'Platform ({platform}) not supported.')
+        raise RuntimeError(f"Platform ({platform}) not supported.")
     # Run optimization
     mopac_bin = MOPAC_CONFIG[str(version)][0]
     try:
-        retcode = subprocess.call(f'{precmd} {mopac_bin} {filename}', shell=True,
-                                  stdin=subprocess.DEVNULL,
-                                  stdout=subprocess.DEVNULL,
-                                  stderr=subprocess.DEVNULL)  # noqa: S603
+        retcode = subprocess.call(
+            f"{precmd} {mopac_bin} {filename}",
+            shell=True,
+            stdin=subprocess.DEVNULL,
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+        )  # noqa: S603
         return retcode
     except Exception:
         return 1
@@ -299,8 +332,7 @@ def clean_mopac_files(dir_: str, force: bool = False) -> None:
     """
     # If neither is dir_ in tempdir nor force set to True
     if not (is_in_subdirectory_tree(dir_, tempfile.gettempdir()) or force):
-        raise PermissionError('Directory is not temporary. If you know what you '
-                              'are doing force the  deletion')
+        raise PermissionError("Directory is not temporary. If you know what you are doing force the  deletion")
     shutil.rmtree(dir_, ignore_errors=True)
 
 
@@ -316,16 +348,19 @@ def is_mopac_version_available(version: str) -> bool:
     if shutil.which(MOPAC_CONFIG[version][0]) is None:
         return False
     # Ensure the executable runs without trouble
-    if platform.startswith('win32'):
-        echo_cmd = 'echo.'
-    elif platform in ('linux', 'darwin'):
+    if platform.startswith("win32"):
+        echo_cmd = "echo."
+    elif platform in ("linux", "darwin"):
         echo_cmd = r'echo -e "\n"'
     else:
-        raise RuntimeError(f'Platform ({platform}) not supported.')
-    retcode = subprocess.call(f'{echo_cmd} | {MOPAC_CONFIG[version][0]}', shell=True,
-                              stdin=subprocess.DEVNULL,
-                              stdout=subprocess.DEVNULL,
-                              stderr=subprocess.DEVNULL)
+        raise RuntimeError(f"Platform ({platform}) not supported.")
+    retcode = subprocess.call(
+        f"{echo_cmd} | {MOPAC_CONFIG[version][0]}",
+        shell=True,
+        stdin=subprocess.DEVNULL,
+        stdout=subprocess.DEVNULL,
+        stderr=subprocess.DEVNULL,
+    )
     return retcode == 0
 
 
@@ -336,13 +371,20 @@ def is_method_supported_by_mopac(method: str, version: str) -> bool:
     :param version: version of MOPAC
     """
     if not is_mopac_version_available(version):
-        raise ValueError(f'MOPAC version {version} is not available.')
-    return str(method) in MOPAC_CONFIG[f'{version}'][1]
+        raise ValueError(f"MOPAC version {version} is not available.")
+    return str(method) in MOPAC_CONFIG[f"{version}"][1]
 
 
-def get_arc_file(inputmol: Chem.Mol, method: str = 'PM7', version: str = '2016', opt: str= '',
-                 n_jobs: int = 1, verbose: bool = True, exit_on_fail: bool = False,
-                 ) -> Union[Tuple[MopacResultDir, str], None]:
+def get_arc_file(
+    inputmol: Chem.Mol,
+    method: str = "PM7",
+    version: str = "2016",
+    opt: str = "",
+    n_jobs: int = 1,
+    affinity: Optional[List[int]] = None,
+    verbose: bool = True,
+    exit_on_fail: bool = False,
+) -> Union[Tuple[MopacResultDir, str], None]:
     """Optimize molecule geometry with MOPAC.
 
     :param inputmol: molecule to optimize
@@ -350,6 +392,8 @@ def get_arc_file(inputmol: Chem.Mol, method: str = 'PM7', version: str = '2016',
     :param version: version of MOPAC to be used
     :param opt: optimizations (e.g. tighter SCF convergence criteria)
     :param n_jobs: number of jobs to run in parallel
+    :param affinity: specific core ids the MOPAC process should be pinned to.
+    If None, cores are randomly (but distinctly) drawn based on `n_jobs`.
     :param verbose: whether to print progress messages
     :param exit_on_fail: if False, if a method fails at generating
                          a structure, others are tried from most to
@@ -363,33 +407,33 @@ def get_arc_file(inputmol: Chem.Mol, method: str = 'PM7', version: str = '2016',
     # Ensure dat file exists
     full_path = os.path.join(dir_.path, dat_file)
     if not os.path.isfile(full_path):
-        raise FileNotFoundError('Molecule could not be prepared for MOPAC.')
+        raise FileNotFoundError("Molecule could not be prepared for MOPAC.")
     # Run MOPAC
-    retcode = run_mopac(full_path, version=version, n_jobs=n_jobs)
+    retcode = run_mopac(full_path, version=version, n_jobs=n_jobs, affinity=affinity)
     # Get generated file
     # Different versions of MOPAC handle the outputname differently
     # e.g. 7.1 appends .arc after the .dat giving a .dat.arc file
     # while 2016 replaces the .dat by .arc
-    output = get_file_in_dir_from_ext(dir_.path, '.arc')
+    output = get_file_in_dir_from_ext(dir_.path, ".arc")
     # Success when return code is 0
     success = not retcode and len(output) > 0
     if success:
         if verbose:
-            print(f'Molecule geometry was successfully optimized using {method}.')  # noqa T001
+            print(f"Molecule geometry was successfully optimized using {method}.")  # noqa T001
         output = output[0] if len(output) == 1 else get_lastest_created_file(filepaths=output)
         # Rename output
-        curated_filename = f'{os.path.splitext(full_path)[0]}.arc'
+        curated_filename = f"{os.path.splitext(full_path)[0]}.arc"
         os.rename(output, curated_filename)
         return dir_, curated_filename
     elif exit_on_fail:
         if verbose:
-            print(f'Geometry optimization failed with {method}')  # noqa T001
+            print(f"Geometry optimization failed with {method}")  # noqa T001
         dir_.close()
         return
     else:  # neither success nor exit_on_fail
         if verbose:
-            print(f'Geometry optimization failed with {method}')  # noqa T001
-        methods_tried = MOPAC_CONFIG[f'{version}'][1].copy()
+            print(f"Geometry optimization failed with {method}")  # noqa T001
+        methods_tried = MOPAC_CONFIG[f"{version}"][1].copy()
         # Remove the method that was just used
         methods_tried.remove(method)
         # Try all possible methods, from most to least accurate
@@ -399,25 +443,37 @@ def get_arc_file(inputmol: Chem.Mol, method: str = 'PM7', version: str = '2016',
                 del methods_tried[0]  # Remove method tried to allow going to the next
                 if len(methods_tried) == 0:  # No method left
                     if verbose:
-                        print('Molecule could not be optimized.')  # noqa T001
+                        print("Molecule could not be optimized.")  # noqa T001
                     else:
-                        warnings.warn('Molecule could not be optimized', RuntimeWarning)
+                        warnings.warn("Molecule could not be optimized", RuntimeWarning)
                     dir_.close()
                     return
             skip_first_time = False
             if verbose:
-                print(f'Attempting optimization with {methods_tried[0]}')  # noqa T001
+                print(f"Attempting optimization with {methods_tried[0]}")  # noqa T001
             # Create proper input file
-            new_attempt = get_arc_file(inputmol=inputmol, method=methods_tried[0], version=version,
-                                       opt=opt, n_jobs=n_jobs, verbose=verbose, exit_on_fail=True)
+            new_attempt = get_arc_file(
+                inputmol=inputmol,
+                method=methods_tried[0],
+                version=version,
+                opt=opt,
+                n_jobs=n_jobs,
+                affinity=affinity,
+                verbose=verbose,
+                exit_on_fail=True,
+            )
             if new_attempt is not None:
                 return new_attempt
 
 
-def get_optimized_mol(arc_file: str = None, inputmol: Chem.Mol = None,
-                      method: str = 'PM7', version: str = '2016',
-                      verbose: bool = False, dispose: bool = True,
-                      ) -> Union[Chem.Mol, None]:
+def get_optimized_mol(
+    arc_file: str = None,
+    inputmol: Chem.Mol = None,
+    method: str = "PM7",
+    version: str = "2016",
+    verbose: bool = False,
+    dispose: bool = True,
+) -> Union[Chem.Mol, None]:
     """Optimize molecule geometry with MOPAC and return the optimized molecule.
 
     In order not to optimize a molecule multiple times, an ARC file may be provided.
@@ -440,20 +496,21 @@ def get_optimized_mol(arc_file: str = None, inputmol: Chem.Mol = None,
     :return: optimized rdkit molecule on success, None otherwise.
     """
     if arc_file is None and inputmol is None:
-        raise ValueError('Either ARC file or input molecule must be provided.')
+        raise ValueError("Either ARC file or input molecule must be provided.")
     if arc_file is not None:
         mopac_out_dir = os.path.dirname(arc_file)
-        mopac_out_path = get_file_in_dir_from_ext(mopac_out_dir, '.out')
-        mopac_out_path = mopac_out_path[0] if len(mopac_out_path) == 1 \
-            else get_lastest_created_file(filepaths=mopac_out_path)
+        mopac_out_path = get_file_in_dir_from_ext(mopac_out_dir, ".out")
+        mopac_out_path = (
+            mopac_out_path[0] if len(mopac_out_path) == 1 else get_lastest_created_file(filepaths=mopac_out_path)
+        )
         if not len(mopac_out_path):
             return None
-        pybelmol = next(pybel.readfile('mopout', mopac_out_path))
+        pybelmol = next(pybel.readfile("mopout", mopac_out_path))
         # Convert to RDKit
         block = BlockLogs()
-        mol = Chem.MolFromMol2Block(pybelmol.write(format='mol2'))
+        mol = Chem.MolFromMol2Block(pybelmol.write(format="mol2"))
         if mol is None:
-            mol = Chem.MolFromMolBlock(pybelmol.write(format='sdf'))
+            mol = Chem.MolFromMolBlock(pybelmol.write(format="sdf"))
         del block
         return mol
     else:
@@ -461,23 +518,25 @@ def get_optimized_mol(arc_file: str = None, inputmol: Chem.Mol = None,
         if res is None:
             return None
         dir_, arc_file_ = res
-        mopac_out_path = get_file_in_dir_from_ext(dir_.path, '.out')
-        mopac_out_path = mopac_out_path[0] if len(mopac_out_path) == 1 \
-            else get_lastest_created_file(filepaths=mopac_out_path)
+        mopac_out_path = get_file_in_dir_from_ext(dir_.path, ".out")
+        mopac_out_path = (
+            mopac_out_path[0] if len(mopac_out_path) == 1 else get_lastest_created_file(filepaths=mopac_out_path)
+        )
         if not len(mopac_out_path):
             return None
-        pybelmol = next(pybel.readfile('mopout', mopac_out_path))
+        pybelmol = next(pybel.readfile("mopout", mopac_out_path))
         if dispose:
             dir_.close()
         # Convert to RDKit
         block = BlockLogs()
-        mol = Chem.MolFromMol2Block(pybelmol.write(format='mol2'), removeHs=False)
+        mol = Chem.MolFromMol2Block(pybelmol.write(format="mol2"), removeHs=False)
         if mol is None:
-            mol = Chem.MolFromMolBlock(pybelmol.write(format='sdf'))
+            mol = Chem.MolFromMolBlock(pybelmol.write(format="sdf"))
         del block
         return mol
 
-def embed_mol_with_openbabel(mol: Chem.Mol, opt: bool = True, ff: str = 'mmff94', n_steps: int = 50) -> Chem.Mol:
+
+def embed_mol_with_openbabel(mol: Chem.Mol, opt: bool = True, ff: str = "mmff94", n_steps: int = 50) -> Chem.Mol:
     """Embed a molecule with openbabel.
 
     :param mol: molecule to embed
@@ -493,5 +552,5 @@ def embed_mol_with_openbabel(mol: Chem.Mol, opt: bool = True, ff: str = 'mmff94'
     if opt:
         pmol.localopt()
     # Convert back to RDKit
-    rdmol = Chem.MolFromMolBlock(pmol.write(format='mol'), removeHs=False)
+    rdmol = Chem.MolFromMolBlock(pmol.write(format="mol"), removeHs=False)
     return rdmol

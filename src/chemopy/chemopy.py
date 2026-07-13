@@ -3,17 +3,19 @@
 
 """Main classes for the calculation of molecular descriptors."""
 
+import multiprocessing
 import os
+import warnings
+from concurrent.futures import ProcessPoolExecutor
 from copy import deepcopy
+from threading import BoundedSemaphore
 from typing import List, Optional
 
 import more_itertools
-import numpy as np
 import pandas as pd
-from bounded_pool_executor import BoundedProcessPoolExecutor
 from rdkit import Chem
 
-from . import getmol, geo_opt
+from . import geo_opt
 from .basak import Basak
 from .bcut import BCUT
 from .charge import Charge
@@ -37,6 +39,23 @@ from .topology import Topology
 from .whim import WHIM
 
 
+# Core id this worker process is pinned to; set once by _pin_worker at pool startup.
+_WORKER_CORE_ID: Optional[int] = None
+
+
+def _pin_worker(counter: "multiprocessing.sharedctypes.Synchronized") -> None:
+    """Assign this pool worker process a unique, permanent core id.
+
+    Runs once per worker process at ProcessPoolExecutor startup so that,
+    for the lifetime of the pool, each of the `njobs` live workers owns a
+    distinct core in `0..njobs-1` and none collide with one another.
+    """
+    global _WORKER_CORE_ID
+    with counter.get_lock():
+        _WORKER_CORE_ID = counter.value
+        counter.value += 1
+
+
 class ChemoPy:
     """Molecular descriptor calculator."""
 
@@ -49,13 +68,14 @@ class ChemoPy:
         :param exclude_descriptors: Should molecular descriptors be excluded (default: False).
         """
         if exclude_descriptors and not include_fps:
-            raise ValueError('Either molecular descriptors or fingerprints must be calculated.')
+            raise ValueError("Either molecular descriptors or fingerprints must be calculated.")
         self.ignore_3D = ignore_3D
         self.include_fps = include_fps
         self.include_descriptors = not exclude_descriptors
 
-    def calculate(self, mols: List[Chem.Mol], show_banner: bool = True, njobs: int = 1,
-                  chunksize: Optional[int] = 1000) -> pd.DataFrame:
+    def calculate(
+        self, mols: List[Chem.Mol], show_banner: bool = True, njobs: int = 1, chunksize: Optional[int] = 1000
+    ) -> pd.DataFrame:
         """Calculate molecular descriptors and/or fingerprints.
 
         :param mols: RDKit molecules for which descriptors/fingerprints should be calculated
@@ -67,16 +87,27 @@ class ChemoPy:
         if show_banner:
             self._show_banner()
         if njobs < 0:
-            njobs = os.cpu_count() - njobs + 1
+            njobs = os.cpu_count() + njobs + 1
+        if njobs > os.cpu_count():
+            warnings.warn(
+                f"Requested {njobs} jobs but only {os.cpu_count()} cores are available; clipping.", UserWarning
+            )
+            njobs = os.cpu_count()
         # Parallelize should need be
         if njobs > 1:
-            with BoundedProcessPoolExecutor(max_workers=njobs) as worker:
-                futures = [worker.submit(self._calculate, list(chunk))
-                           for chunk in more_itertools.batched(mols, chunksize)
-                           ]
-            return pd.concat([future.result()
-                              for future in futures]
-                             ).reset_index(drop=True).fillna(0)
+            core_counter = multiprocessing.Value("i", 0)
+            # Bounds how many chunks are ever queued/pickled to workers at once,
+            # so `mols` is only consumed from as fast as workers can keep up.
+            semaphore = BoundedSemaphore(njobs)
+            with ProcessPoolExecutor(max_workers=njobs, initializer=_pin_worker, initargs=(core_counter,)) as worker:
+                futures = []
+                for chunk in more_itertools.batched(mols, chunksize):
+                    semaphore.acquire()
+                    future = worker.submit(self._calculate, list(chunk))
+                    future.add_done_callback(lambda _f: semaphore.release())
+                    futures.append(future)
+                results = [future.result() for future in futures]
+            return pd.concat(results).reset_index(drop=True).fillna(0)
         # Single process
         return self._calculate(mols)
 
@@ -107,72 +138,80 @@ DOI: 10.1093/bioinformatics/btt105
         :return: a pandas DataFrame containing all chemoPy descriptor values
         """
         if self.include_descriptors:
-            descs_2D = [(Constitution, 'get_all'), (Topology, 'get_all'), (Connectivity, 'get_all'), (Kappa, 'get_all'), (Basak, 'get_all'),
-                        (EState, 'get_all_fps'), (EState, 'get_all_descriptors'), (BCUT, 'get_all'), (MoreauBroto, 'get_all'),
-                        (Moran, 'get_all'), (Geary, 'get_all'), (Charge, 'get_all'), (MolecularProperties, 'get_all'), (MOE, 'get_all')]
+            descs_2D = [
+                (Constitution, "get_all"),
+                (Topology, "get_all"),
+                (Connectivity, "get_all"),
+                (Kappa, "get_all"),
+                (Basak, "get_all"),
+                (EState, "get_all_fps"),
+                (EState, "get_all_descriptors"),
+                (BCUT, "get_all"),
+                (MoreauBroto, "get_all"),
+                (Moran, "get_all"),
+                (Geary, "get_all"),
+                (Charge, "get_all"),
+                (MolecularProperties, "get_all"),
+                (MOE, "get_all"),
+            ]
             descs_3D = []
             # Sanity check for 3D descriptors
             if not self.ignore_3D:
                 for mol in mols:
                     confs = list(mol.GetConformers())
                     if not (len(confs) > 0 and confs[-1].Is3D()):
-                        raise ValueError('Cannot calculate 3D descriptors for a conformer-less molecule')
-                descs_3D.extend([(Geometric, 'get_all'), (CPSA, 'get_all') , (WHIM, 'get_all'),
-                                 (MoRSE, 'get_all'), (RDF, 'get_all'), (QuantumChemistry, 'get_all')])
+                        raise ValueError("Cannot calculate 3D descriptors for a conformer-less molecule")
+                descs_3D.extend(
+                    [
+                        (Geometric, "get_all"),
+                        (CPSA, "get_all"),
+                        (WHIM, "get_all"),
+                        (MoRSE, "get_all"),
+                        (RDF, "get_all"),
+                        (QuantumChemistry, "get_all"),
+                    ]
+                )
         else:
             descs_2D, descs_3D = [], []
         # Include fingerprints?
         if self.include_fps:
-            descs_2D.append((Fingerprint, 'get_all_fps'))
+            descs_2D.append((Fingerprint, "get_all_fps"))
             # Include 3D fingerprint(s)
             if not self.ignore_3D:
-                descs_3D.append((Fingerprint3D, 'calculate_e3fp'))
+                descs_3D.append((Fingerprint3D, "calculate_e3fp"))
         # Calculate descriptors
         all_values = []
         skipped_mols = []
+        affinity = [_WORKER_CORE_ID] if _WORKER_CORE_ID is not None else None
         for i, mol in enumerate(mols):
             mol_values = {}
             # 2D descriptors
             for desc_2D, fn in descs_2D:
-                try:
-                    tmp = getattr(desc_2D, fn)(mol)
-                    mol_values.update(tmp)
-                except Exception as e:
-                    raise e
-                    pass
+                tmp = getattr(desc_2D, fn)(mol)
+                mol_values.update(tmp)
             # 3D descriptors
             if len(descs_3D):
                 try:
-                    dir_, arc_file = geo_opt.get_arc_file(mol, verbose=False)
+                    dir_, arc_file = geo_opt.get_arc_file(mol, verbose=False, affinity=affinity)
                     mol3d = geo_opt.get_optimized_mol(arc_file=arc_file)
                     for desc_3D, fn in descs_3D:
-                        try:
-                            mol_values.update(getattr(desc_3D, fn)(mol=mol3d, arc_file=arc_file))
-                        except Exception as e:
-                            raise e
-                            pass
+                        mol_values.update(getattr(desc_3D, fn)(mol=mol3d, arc_file=arc_file))
                     # Dispose of MOPAC files
-                    try:
-                        dir_.close()
-                    except Exception as e:
-                        raise e
-                        pass
-                except Exception as e:
-                    raise e
+                    dir_.close()
+                except Exception:
                     # Add molecule index to those skipped
                     skipped_mols.append(i)
             all_values.append(mol_values)
-        # Transform to pandas dataframe
-        results = pd.DataFrame(all_values)
-        if results.empty:
-            return results
-        # Insert lines for skipped molecules
-        if len(skipped_mols):
-            results = pd.DataFrame(np.insert(results.values, skipped_mols,
-                                             values=[np.nan] * len(results.columns),
-                                             axis=0),
-                                   columns=results.columns)
-        return results
+        if skipped_mols:
+            warnings.warn(
+                f"3D descriptors/fingerprint could not be calculated for {len(skipped_mols)} "
+                f"molecule(s) at index(es) {skipped_mols}; their values are set to NaN.",
+                UserWarning,
+            )
+        # Transform to pandas dataframe. Every mol (skipped or not) has exactly one
+        # entry in all_values, so pandas already aligns rows correctly and fills
+        # NaN for any 3D-descriptor columns a skipped molecule is missing.
+        return pd.DataFrame(all_values)
 
     def _multiproc_calculate(self, mols: List[Chem.Mol]) -> pd.DataFrame:
         """Calculate ChemoPy descriptors/fingerprints in thread-safe manner.
@@ -195,9 +234,9 @@ DOI: 10.1093/bioinformatics/btt105
         If `None`, obtain details for all.
         :return: The details about the descriptor(s)/fingerprint(s)
         """
-        details = pd.read_json(os.path.abspath(os.path.join(__file__, os.pardir, 'descs.json')), orient='index')
+        details = pd.read_json(os.path.abspath(os.path.join(__file__, os.pardir, "descs.json")), orient="index")
         if desc_name is not None:
             if desc_name not in details.Name.tolist():
-                raise ValueError(f'descriptor name {desc_name} is not available')
+                raise ValueError(f"descriptor name {desc_name} is not available")
             details = details[details.Name == desc_name]
         return details
