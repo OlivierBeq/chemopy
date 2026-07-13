@@ -51,7 +51,7 @@ def is_in_subdirectory_tree(path: str, parent_path: str) -> bool:
     # Get relative path
     relpath = os.path.relpath(parent_path_, path_)
     # Remove / and \ and '..'
-    relpath = relpath.replace('/', '').replace('\\', '').replace('..', '')
+    relpath = relpath.replace("/", "").replace("\\", "").replace("..", "")
     return len(relpath) == 0
 
 
@@ -63,9 +63,11 @@ def get_file_in_dir_from_ext(dirpath: str, ext: str) -> List[str]:
     :param ext: extensions (including .) to filter files on
     :return: list of files matching the required extension(s)
     """
-    return [os.path.realpath(os.path.join(dirpath, x))
-            for x in os.listdir(dirpath)
-            if os.path.splitext(x)[1].lower() == ext.lower()]
+    return [
+        os.path.realpath(os.path.join(dirpath, x))
+        for x in os.listdir(dirpath)
+        if os.path.splitext(x)[1].lower() == ext.lower()
+    ]
 
 
 def are_all_paths_absolute(paths: List[str]) -> bool:
@@ -92,23 +94,23 @@ def get_lastest_created_file(dirpath: str = None, filepaths: List[str] = None, s
     :param strict: whether to stop when a file from filepaths does not exist
     """
     if (dirpath, filepaths) == (None, None):
-        raise ValueError('Either dirpath or filepaths must be provided.')
+        raise ValueError("Either dirpath or filepaths must be provided.")
     if dirpath is not None and filepaths is not None:
         if not are_all_paths_relative(filepaths):
-            raise ValueError('filepaths must not be absolute when dirpath provided.')
+            raise ValueError("filepaths must not be absolute when dirpath provided.")
         if not os.path.isdir(dirpath):
-            raise NotADirectoryError(f'{dirpath} does not exist.')
+            raise NotADirectoryError(f"{dirpath} does not exist.")
         files = []
         for file_ in filepaths:
             full_path = os.path.realpath(os.path.join(dirpath, file_))
             if not os.path.isfile(full_path) and strict:
-                raise FileNotFoundError(f'{full_path} does not exist.')
+                raise FileNotFoundError(f"{full_path} does not exist.")
             elif os.path.isfile(full_path):
                 files.append((full_path, Path(full_path).stat().st_ctime_ns))
         return sorted(files, key=lambda x: x[1], reverse=True)[0][0]
     elif dirpath is not None:
         if not os.path.isdir(dirpath):
-            raise NotADirectoryError(f'{dirpath} does not exist.')
+            raise NotADirectoryError(f"{dirpath} does not exist.")
         files = []
         for file_ in os.listdir(dirpath):
             full_path = os.path.realpath(os.path.join(dirpath, file_))
@@ -117,11 +119,11 @@ def get_lastest_created_file(dirpath: str = None, filepaths: List[str] = None, s
         return sorted(files, key=lambda x: x[1], reverse=True)[0][0]
     else:
         if not are_all_paths_absolute(filepaths):
-            raise ValueError('filepaths must be absolute when dirpath is not provided.')
+            raise ValueError("filepaths must be absolute when dirpath is not provided.")
         files = []
         for file_ in filepaths:
             if not os.path.isfile(file_) and strict:
-                raise FileNotFoundError(f'{file_} does not exist.')
+                raise FileNotFoundError(f"{file_} does not exist.")
             elif os.path.isfile(file_):
                 files.append((file_, Path(file_).stat().st_ctime_ns))
         return sorted(files, key=lambda x: x[1], reverse=True)[0][0]
@@ -129,6 +131,10 @@ def get_lastest_created_file(dirpath: str = None, filepaths: List[str] = None, s
 
 def rdkit_to_openbabel_mol(mol: Chem.Mol) -> openbabel.OBMol:
     """Convert a RDKit molecule to an OpenBabel molecule.
+
+    If Gasteiger partial charges have been computed on `mol` (e.g. via
+    `AllChem.ComputeGasteigerCharges`), they are carried over; otherwise
+    each atom's partial charge defaults to 0.0.
 
     :param mol: RDKit molecule
     """
@@ -147,7 +153,7 @@ def rdkit_to_openbabel_mol(mol: Chem.Mol) -> openbabel.OBMol:
         obatom.SetAtomicNum(atom.GetAtomicNum())
         obatom.SetIsotope(atom.GetIsotope())
         obatom.SetFormalCharge(atom.GetFormalCharge())
-        obatom.SetPartialCharge(atom.GetDoubleProp('_PartialCharge'))
+        obatom.SetPartialCharge(atom.GetDoubleProp("_GasteigerCharge") if atom.HasProp("_GasteigerCharge") else 0.0)
         obatom.SetSpinMultiplicity(atom.GetNumRadicalElectrons() + 1)
     for bond in mol.GetBonds():
         obmol.AddBond(bond.GetBeginAtomIdx() + 1, bond.GetEndAtomIdx() + 1, int(bond.GetBondTypeAsDouble()))
@@ -175,17 +181,19 @@ def openbabel_to_rdkit_mol(mol: openbabel.OBMol) -> Chem.Mol:
         atom = Chem.Atom(obatom.GetAtomicNum())
         atom.SetIsotope(obatom.GetIsotope())
         atom.SetFormalCharge(obatom.GetFormalCharge())
-        atom.SetDoubleProp('_PartialCharge', obatom.GetPartialCharge())
+        atom.SetDoubleProp("_GasteigerCharge", obatom.GetPartialCharge())
         atom.SetNumRadicalElectrons(obatom.GetSpinMultiplicity() - 1 if obatom.GetSpinMultiplicity() != 0 else 0)
         # Add it to the current molecule
         rdkitmol.AddAtom(atom)
 
-        orders = {1: Chem.rdchem.BondType.SINGLE,
-                  2: Chem.rdchem.BondType.DOUBLE,
-                  3: Chem.rdchem.BondType.TRIPLE,
-                  4: Chem.rdchem.BondType.QUADRUPLE,
-                  5: Chem.rdchem.BondType.QUINTUPLE,
-                  1.5: Chem.rdchem.BondType.AROMATIC}
+        orders = {
+            1: Chem.rdchem.BondType.SINGLE,
+            2: Chem.rdchem.BondType.DOUBLE,
+            3: Chem.rdchem.BondType.TRIPLE,
+            4: Chem.rdchem.BondType.QUADRUPLE,
+            5: Chem.rdchem.BondType.QUINTUPLE,
+            1.5: Chem.rdchem.BondType.AROMATIC,
+        }
     for obbond in openbabel.OBMolBondIter(mol):
         rdkitmol.AddBond(obbond.GetBeginAtomIdx() - 1, obbond.GetEndAtomIdx() - 1, orders[obbond.GetBondOrder()])
     rdkitmol = rdkitmol.GetMol()
@@ -199,6 +207,7 @@ def pybel_to_rdkit_mol(mol: pybel.Molecule) -> Chem.Mol:
     :param mol: OpenBabel.Pybel molecule
     """
     return openbabel_to_rdkit_mol(mol.OBMol)
+
 
 def needs_hydrogens(mol: Chem.Mol) -> bool:
     """Return if the molecule lacks hydrogen atoms or not.
