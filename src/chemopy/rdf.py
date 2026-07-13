@@ -3,8 +3,6 @@
 
 """3D Radial Distribution Function (RDF) descriptors."""
 
-import math
-
 import numpy as np
 from rdkit import Chem
 
@@ -14,6 +12,22 @@ from .utils import get_geometrical_distance_matrix, get_r
 
 _beta = 100
 
+
+def _rdf_sums(DM: np.array, weights: np.array, R_values) -> np.array:
+    """Vectorized equivalent of the reference triple loop.
+
+    For each R in R_values, computes sum over atom pairs i<j of
+    `weights[i] * weights[j] * exp(-_beta * (R - DM[i, j])^2)`, which the reference
+    implementation computed with a Python-level `for R: for j: for k>j` loop nest.
+    """
+    n = DM.shape[0]
+    iu = np.triu_indices(n, k=1)
+    d = DM[iu]
+    w = weights[iu[0]] * weights[iu[1]]
+    R_arr = np.asarray(R_values)[:, None]
+    return np.sum(w[None, :] * np.exp(-_beta * np.power(R_arr - d[None, :], 2)), axis=1)
+
+
 class RDF:
     """3D Radial Distribution Function descriptors."""
 
@@ -21,130 +35,61 @@ class RDF:
     def calculate_unweight_rdf(charge_coordinates):
         """Calculate unweighted RDF descriptors."""
         R = get_r(n=30)
-        temp = []
-    #    ChargeCoordinates=_ReadCoordinates('temp.arc')
-        for i in charge_coordinates:
-            # if i[0]!='H':
-            temp.append([float(i[1]), float(i[2]), float(i[3])])
+        temp = [[float(i[1]), float(i[2]), float(i[3])] for i in charge_coordinates]
         DM = get_geometrical_distance_matrix(temp)
-        nAT = len(temp)
-        RDFresult = {}
-        for kkk, Ri in enumerate(R):
-            res = 0.0
-            for j in range(nAT - 1):
-                for k in range(j + 1, nAT):
-                    res = res + math.exp(-_beta * math.pow(Ri - DM[j, k], 2))
-            RDFresult[f'RDFU{kkk + 1}'] = res
-        return RDFresult
+        weights = np.ones(len(temp))
+        sums = _rdf_sums(DM, weights, R)
+        return {f"RDFU{kkk + 1}": res for kkk, res in enumerate(sums)}
 
     @staticmethod
     def calculate_charge_rdf(charge_coordinates):
         """Calculate RDF descriptors with Charge schemes."""
         R = get_r(n=30)
-        temp = []
-        Charge = []
-    #    ChargeCoordinates=_ReadCoordinates('temp.arc')
-        for i in charge_coordinates:
-            # if i[0]!='H':
-            temp.append([float(i[1]), float(i[2]), float(i[3])])
-            Charge.append(float(i[4]))
+        temp = [[float(i[1]), float(i[2]), float(i[3])] for i in charge_coordinates]
+        Charge = np.array([float(i[4]) for i in charge_coordinates])
         DM = get_geometrical_distance_matrix(temp)
-        nAT = len(temp)
-        RDFresult = {}
-        for kkk, Ri in enumerate(R):
-            res = 0.0
-            for j in range(nAT - 1):
-                for k in range(j + 1, nAT):
-                    res = res + Charge[j] * Charge[k] * math.exp(-_beta * math.pow(Ri - DM[j, k], 2))
-            RDFresult[f'RDFC{kkk + 1}'] = res
-        return RDFresult
+        sums = _rdf_sums(DM, Charge, R)
+        return {f"RDFC{kkk + 1}": res for kkk, res in enumerate(sums)}
 
     @staticmethod
     def calculate_mass_rdf(mol: Chem.Mol, charge_coordinates):
         """Calculate RDF descriptors with Mass schemes."""
-        mass = [atom.GetMass() for atom in Chem.AddHs(mol).GetAtoms()]
+        mass = np.array([atom.GetMass() for atom in Chem.AddHs(mol).GetAtoms()])
         R = get_r(n=30)
-        temp = []
-    #    ChargeCoordinates=_ReadCoordinates('temp.arc')
-        for i in charge_coordinates:
-            # if i[0]!='H':
-            temp.append([float(i[1]), float(i[2]), float(i[3])])
+        temp = [[float(i[1]), float(i[2]), float(i[3])] for i in charge_coordinates]
         DM = get_geometrical_distance_matrix(temp)
-        nAT = len(temp)
-        RDFresult = {}
-        for kkk, Ri in enumerate(R):
-            res = 0.0
-            for j in range(nAT - 1):
-                for k in range(j + 1, nAT):
-                    res = res + mass[j] * mass[k] * math.exp(-_beta * math.pow(Ri - DM[j, k], 2))
-            RDFresult[f'RDFM{kkk + 1}'] = res / 144
-        return RDFresult
+        sums = _rdf_sums(DM, mass, R)
+        return {f"RDFM{kkk + 1}": res / 144 for kkk, res in enumerate(sums)}
 
     @staticmethod
     def calculate_polarizability_rdf(charge_coordinates):
         """Calculate RDF descriptors with Polarizability schemes."""
         R = get_r(n=30)
-        temp = []
-        polarizability = []
-    #    ChargeCoordinates=_ReadCoordinates('temp.arc')
-        for i in charge_coordinates:
-            # if i[0]!='H':
-            temp.append([float(i[1]), float(i[2]), float(i[3])])
-            polarizability.append(get_relative_atomic_property(i[0], 'alapha'))
+        temp = [[float(i[1]), float(i[2]), float(i[3])] for i in charge_coordinates]
+        polarizability = np.array([get_relative_atomic_property(i[0], "alapha") for i in charge_coordinates])
         DM = get_geometrical_distance_matrix(temp)
-        nAT = len(temp)
-        RDFresult = {}
-        for kkk, Ri in enumerate(R):
-            res = 0.0
-            for j in range(nAT - 1):
-                for k in range(j + 1, nAT):
-                    res = res + polarizability[j] * polarizability[k] * math.exp(-_beta * math.pow(Ri - DM[j, k], 2))
-            RDFresult[f'RDFP{kkk + 1}'] = res
-        return RDFresult
+        sums = _rdf_sums(DM, polarizability, R)
+        return {f"RDFP{kkk + 1}": res for kkk, res in enumerate(sums)}
 
     @staticmethod
     def calculate_sanderson_electronegativity_rdf(charge_coordinates):
         """Calculate RDF descriptors with Sanderson Electronegativity schemes."""
         R = get_r(n=30)
-        temp = []
-        EN = []
-    #    ChargeCoordinates=_ReadCoordinates('temp.arc')
-        for i in charge_coordinates:
-            # if i[0]!='H':
-            temp.append([float(i[1]), float(i[2]), float(i[3])])
-            EN.append(get_relative_atomic_property(i[0], 'En'))
+        temp = [[float(i[1]), float(i[2]), float(i[3])] for i in charge_coordinates]
+        EN = np.array([get_relative_atomic_property(i[0], "En") for i in charge_coordinates])
         DM = get_geometrical_distance_matrix(temp)
-        nAT = len(temp)
-        RDFresult = {}
-        for kkk, Ri in enumerate(R):
-            res = 0.0
-            for j in range(nAT - 1):
-                for k in range(j + 1, nAT):
-                    res = res + EN[j] * EN[k] * math.exp(-_beta * math.pow(Ri - DM[j, k], 2))
-            RDFresult[f'RDFE{kkk + 1}'] = res
-        return RDFresult
+        sums = _rdf_sums(DM, EN, R)
+        return {f"RDFE{kkk + 1}": res for kkk, res in enumerate(sums)}
 
     @staticmethod
     def calculate_vdw_volume_rdf(charge_coordinates):
         """Calculate RDF with atomic van der Waals volume shemes."""
         R = get_r(n=30)
-        temp = []
-        VDW = []
-    #    ChargeCoordinates=_ReadCoordinates('temp.arc')
-        for i in charge_coordinates:
-            # if i[0]!='H':
-            temp.append([float(i[1]), float(i[2]), float(i[3])])
-            VDW.append(get_relative_atomic_property(i[0], 'V'))
+        temp = [[float(i[1]), float(i[2]), float(i[3])] for i in charge_coordinates]
+        VDW = np.array([get_relative_atomic_property(i[0], "V") for i in charge_coordinates])
         DM = get_geometrical_distance_matrix(temp)
-        nAT = len(temp)
-        RDFresult = {}
-        for kkk, Ri in enumerate(R):
-            res = 0.0
-            for j in range(nAT - 1):
-                for k in range(j + 1, nAT):
-                    res = res + VDW[j] * VDW[k] * math.exp(-_beta * math.pow(Ri - DM[j, k], 2))
-            RDFresult[f'RDFV{kkk + 1}'] = res
-        return RDFresult
+        sums = _rdf_sums(DM, VDW, R)
+        return {f"RDFV{kkk + 1}": res for kkk, res in enumerate(sums)}
 
     @staticmethod
     def get_rdf_unweighed(arc_file):

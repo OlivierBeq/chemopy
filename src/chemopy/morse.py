@@ -3,8 +3,6 @@
 
 """3D MoRSE descriptors."""
 
-
-import math
 from typing import List
 
 import numpy as np
@@ -17,6 +15,23 @@ from .utils import get_geometrical_distance_matrix, get_r
 # Parameter for RDF equation
 _beta = 100
 
+
+def _morse_sums(DM: np.array, weights: np.array, R_values: List[float]) -> np.array:
+    """Vectorized equivalent of the reference triple loop.
+
+    For each R in R_values, computes sum over atom pairs i<j of
+    `weights[i] * weights[j] * sin(R * DM[i, j]) / (R * DM[i, j])`, which the reference
+    implementation computed with a Python-level `for R: for j: for k>j` loop nest.
+    """
+    n = DM.shape[0]
+    iu = np.triu_indices(n, k=1)
+    d = DM[iu]
+    w = weights[iu[0]] * weights[iu[1]]
+    R_arr = np.asarray(R_values)[:, None]
+    rd = R_arr * d[None, :]
+    return np.sum(w[None, :] * np.sin(rd) / rd, axis=1)
+
+
 class MoRSE:
     """3D MoRSE descriptors."""
 
@@ -27,20 +42,11 @@ class MoRSE:
         :param charge_coordinates: Atomic coordinates and charges as read by chemopy.geo_opt.read_coordinates
         """
         R = get_r(n=30)
-        temp = []
-        for i in charge_coordinates:
-            # if i[0]!='H':
-            temp.append([float(i[1]), float(i[2]), float(i[3])])
+        temp = [[float(i[1]), float(i[2]), float(i[3])] for i in charge_coordinates]
         DM = get_geometrical_distance_matrix(temp)
-        nAT = len(temp)
-        RDFresult = {}
-        for kkk, Ri in enumerate(R):
-            res = 0.0
-            for j in range(nAT - 1):
-                for k in range(j + 1, nAT):
-                    res = res + math.sin(Ri * DM[j, k]) / (Ri * DM[j, k])
-            RDFresult[f'MoRSEU{kkk + 1}'] = res
-        return RDFresult
+        weights = np.ones(len(temp))
+        sums = _morse_sums(DM, weights, R)
+        return {f"MoRSEU{kkk + 1}": res for kkk, res in enumerate(sums)}
 
     @staticmethod
     def calculate_charge_morse(charge_coordinates: List[List[float]]) -> dict:
@@ -49,22 +55,11 @@ class MoRSE:
         :param charge_coordinates: Atomic coordinates and charges as read by chemopy.geo_opt.read_coordinates
         """
         R = get_r(n=30)
-        temp = []
-        charge = []
-        for i in charge_coordinates:
-            # if i[0]!='H':
-            temp.append([float(i[1]), float(i[2]), float(i[3])])
-            charge.append(float(i[4]))
+        temp = [[float(i[1]), float(i[2]), float(i[3])] for i in charge_coordinates]
+        charge = np.array([float(i[4]) for i in charge_coordinates])
         DM = get_geometrical_distance_matrix(temp)
-        nAT = len(temp)
-        RDFresult = {}
-        for kkk, Ri in enumerate(R):
-            res = 0.0
-            for j in range(nAT - 1):
-                for k in range(j + 1, nAT):
-                    res = res + charge[j] * charge[k] * math.sin(Ri * DM[j, k]) / (Ri * DM[j, k])
-            RDFresult[f'MoRSEC{kkk + 1}'] = res
-        return RDFresult
+        sums = _morse_sums(DM, charge, R)
+        return {f"MoRSEC{kkk + 1}": res for kkk, res in enumerate(sums)}
 
     @staticmethod
     def calculate_mass_morse(mol: Chem.Mol, charge_coordinates: List[List[float]]) -> dict:
@@ -73,21 +68,11 @@ class MoRSE:
         :param charge_coordinates: Atomic coordinates and charges as read by chemopy.geo_opt.read_coordinates
         """
         R = get_r(n=30)
-        temp = []
-        mass = [atom.GetMass() for atom in Chem.AddHs(mol).GetAtoms()]
-        for i in charge_coordinates:
-            # if i[0]!='H':
-            temp.append([float(i[1]), float(i[2]), float(i[3])])
+        temp = [[float(i[1]), float(i[2]), float(i[3])] for i in charge_coordinates]
+        mass = np.array([atom.GetMass() for atom in Chem.AddHs(mol).GetAtoms()])
         DM = get_geometrical_distance_matrix(temp)
-        nAT = len(temp)
-        RDFresult = {}
-        for kkk, Ri in enumerate(R):
-            res = 0.0
-            for j in range(nAT - 1):
-                for k in range(j + 1, nAT):
-                    res += mass[j] * mass[k] * math.sin(Ri * DM[j, k]) / (Ri * DM[j, k])
-            RDFresult[f'MoRSEM{kkk + 1}'] = res / 144
-        return RDFresult
+        sums = _morse_sums(DM, mass, R)
+        return {f"MoRSEM{kkk + 1}": res / 144 for kkk, res in enumerate(sums)}
 
     @staticmethod
     def calculate_atomic_number_morse(mol: Chem.Mol, charge_coordinates: List[List[float]]) -> dict:
@@ -96,21 +81,11 @@ class MoRSE:
         :param charge_coordinates: Atomic coordinates and charges as read by chemopy.geo_opt.read_coordinates
         """
         R = get_r(n=30)
-        temp = []
-        mass = [atom.GetMass() for atom in Chem.AddHs(mol).GetAtoms()]
-        for i in charge_coordinates:
-            # if i[0]!='H':
-            temp.append([float(i[1]), float(i[2]), float(i[3])])
+        temp = [[float(i[1]), float(i[2]), float(i[3])] for i in charge_coordinates]
+        mass = np.array([atom.GetMass() for atom in Chem.AddHs(mol).GetAtoms()])
         DM = get_geometrical_distance_matrix(temp)
-        nAT = len(temp)
-        RDFresult = {}
-        for kkk, Ri in enumerate(R):
-            res = 0.0
-            for j in range(nAT - 1):
-                for k in range(j + 1, nAT):
-                    res += mass[j] * mass[k] * math.sin(Ri * DM[j, k]) / (Ri * DM[j, k])
-            RDFresult[f'MoRSEN{kkk + 1}'] = res / 144
-        return RDFresult
+        sums = _morse_sums(DM, mass, R)
+        return {f"MoRSEN{kkk + 1}": res / 144 for kkk, res in enumerate(sums)}
 
     @staticmethod
     def calculate_polarizability_morse(charge_coordinates: List[List[float]]) -> dict:
@@ -119,22 +94,11 @@ class MoRSE:
         :param charge_coordinates: Atomic coordinates and charges as read by chemopy.geo_opt.read_coordinates
         """
         R = get_r(n=30)
-        temp = []
-        polarizability = []
-        for i in charge_coordinates:
-            # if i[0]!='H':
-            temp.append([float(i[1]), float(i[2]), float(i[3])])
-            polarizability.append(get_relative_atomic_property(i[0], 'alapha'))
+        temp = [[float(i[1]), float(i[2]), float(i[3])] for i in charge_coordinates]
+        polarizability = np.array([get_relative_atomic_property(i[0], "alapha") for i in charge_coordinates])
         DM = get_geometrical_distance_matrix(temp)
-        nAT = len(temp)
-        RDFresult = {}
-        for kkk, Ri in enumerate(R):
-            res = 0.0
-            for j in range(nAT - 1):
-                for k in range(j + 1, nAT):
-                    res = res + polarizability[j] * polarizability[k] * math.sin(Ri * DM[j, k]) / (Ri * DM[j, k])
-            RDFresult[f'MoRSEP{kkk + 1}'] = res
-        return RDFresult
+        sums = _morse_sums(DM, polarizability, R)
+        return {f"MoRSEP{kkk + 1}": res for kkk, res in enumerate(sums)}
 
     @staticmethod
     def calculate_sanderson_electronegativity_morse(charge_coordinates: List[List[float]]) -> dict:
@@ -143,22 +107,11 @@ class MoRSE:
         :param charge_coordinates: Atomic coordinates and charges as read by chemopy.geo_opt.read_coordinates
         """
         R = get_r(n=30)
-        temp = []
-        En = []
-        for i in charge_coordinates:
-            # if i[0]!='H':
-            temp.append([float(i[1]), float(i[2]), float(i[3])])
-            En.append(get_relative_atomic_property(i[0], 'En'))
+        temp = [[float(i[1]), float(i[2]), float(i[3])] for i in charge_coordinates]
+        En = np.array([get_relative_atomic_property(i[0], "En") for i in charge_coordinates])
         DM = get_geometrical_distance_matrix(temp)
-        nAT = len(temp)
-        RDFresult = {}
-        for kkk, Ri in enumerate(R):
-            res = 0.0
-            for j in range(nAT - 1):
-                for k in range(j + 1, nAT):
-                    res = res + En[j] * En[k] * math.sin(Ri * DM[j, k]) / (Ri * DM[j, k])
-            RDFresult[f'MoRSEE{kkk + 1}'] = res
-        return RDFresult
+        sums = _morse_sums(DM, En, R)
+        return {f"MoRSEE{kkk + 1}": res for kkk, res in enumerate(sums)}
 
     @staticmethod
     def calculate_vdw_volume_morse(charge_coordinates: List[List[float]]) -> dict:
@@ -167,22 +120,11 @@ class MoRSE:
         :param charge_coordinates: Atomic coordinates and charges as read by chemopy.geo_opt.read_coordinates
         """
         R = get_r(n=30)
-        temp = []
-        VDW = []
-        for i in charge_coordinates:
-            # if i[0]!='H':
-            temp.append([float(i[1]), float(i[2]), float(i[3])])
-            VDW.append(get_relative_atomic_property(i[0], 'V'))
+        temp = [[float(i[1]), float(i[2]), float(i[3])] for i in charge_coordinates]
+        VDW = np.array([get_relative_atomic_property(i[0], "V") for i in charge_coordinates])
         DM = get_geometrical_distance_matrix(temp)
-        nAT = len(temp)
-        RDFresult = {}
-        for kkk, Ri in enumerate(R):
-            res = 0.0
-            for j in range(nAT - 1):
-                for k in range(j + 1, nAT):
-                    res = res + VDW[j] * VDW[k] * math.sin(Ri * DM[j, k]) / (Ri * DM[j, k])
-            RDFresult[f'MoRSEV{kkk + 1}'] = res
-        return RDFresult
+        sums = _morse_sums(DM, VDW, R)
+        return {f"MoRSEV{kkk + 1}": res for kkk, res in enumerate(sums)}
 
     @staticmethod
     def get_morse_unweighted(arc_file: str) -> dict:
