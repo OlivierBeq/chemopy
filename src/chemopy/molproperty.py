@@ -3,21 +3,11 @@
 
 """Molecular physical/chemical properties."""
 
-
 import math
-import os
-import subprocess  # noqa: S404
-import tempfile
-from platform import architecture
-from sys import platform
-from typing import List, Union
 
-from openbabel import pybel
 from rdkit import Chem
 from rdkit.Chem import Crippen
 from rdkit.Chem import MolSurf
-
-from .geo_opt import clean_mopac_files
 
 
 class MolecularProperties:
@@ -57,7 +47,7 @@ class MolecularProperties:
         return MolSurf.TPSA(mol)
 
     @staticmethod
-    def _calculate_bond_number(mol: Chem.Mol, bondtype: str = 'SINGLE') -> float:
+    def _calculate_bond_number(mol: Chem.Mol, bondtype: str = "SINGLE") -> float:
         """Calculate number of bond of specified type.
 
         :param bondtype: can be SINGLE, DOUBLE, TRIPLE or AROMATIC.
@@ -71,9 +61,9 @@ class MolecularProperties:
     @staticmethod
     def calculate_unsaturation_index(mol: Chem.Mol) -> float:
         """Calculate unsaturation index."""
-        nd = MolecularProperties._calculate_bond_number(mol, bondtype='DOUBLE')
-        nt = MolecularProperties._calculate_bond_number(mol, bondtype='TRIPLE')
-        na = MolecularProperties._calculate_bond_number(mol, bondtype='AROMATIC')
+        nd = MolecularProperties._calculate_bond_number(mol, bondtype="DOUBLE")
+        nt = MolecularProperties._calculate_bond_number(mol, bondtype="TRIPLE")
+        na = MolecularProperties._calculate_bond_number(mol, bondtype="AROMATIC")
         res = math.log((1 + nd + nt + na), 2)
         return res
 
@@ -95,8 +85,11 @@ class MolecularProperties:
                 for i in atomn:
                     if i.GetAtomicNum() == 1:
                         nhy += 1
-        res = ((1 + nhy) * math.log((1 + nhy), 2) + nc * (1.0 / nheavy * math.log(1.0 / nheavy, 2)) + math.sqrt(
-            (nhy + 0.0) / (nheavy * nheavy))) / math.log(1.0 + nheavy)
+        res = (
+            (1 + nhy) * math.log((1 + nhy), 2)
+            + nc * (1.0 / nheavy * math.log(1.0 / nheavy, 2))
+            + math.sqrt((nhy + 0.0) / (nheavy * nheavy))
+        ) / math.log(1.0 + nheavy)
         return res
 
     @staticmethod
@@ -108,11 +101,11 @@ class MolecularProperties:
         return result
 
 
-molecular_property = {'MR': MolecularProperties.calculate_molmr,
-                      'LogP': MolecularProperties.calculate_mollogp,
-                      'LogP2': MolecularProperties.calculate_mollogp2,
-                      'TPSA': MolecularProperties.calculate_tpsa,
-                      'UI': MolecularProperties.calculate_unsaturation_index,
-                      'Hy': MolecularProperties.calculate_hydrophilicity_factor,
-                      }
-
+molecular_property = {
+    "MR": MolecularProperties.calculate_molmr,
+    "LogP": MolecularProperties.calculate_mollogp,
+    "LogP2": MolecularProperties.calculate_mollogp2,
+    "TPSA": MolecularProperties.calculate_tpsa,
+    "UI": MolecularProperties.calculate_unsaturation_index,
+    "Hy": MolecularProperties.calculate_hydrophilicity_factor,
+}

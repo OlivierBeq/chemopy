@@ -27,7 +27,7 @@ class CPSA:
         for i in range(len(fasa)):
             res.append([charge_coordinates[i][0], charge_coordinates[i][4], fasa[i]])
         return res
-    
+
     @staticmethod
     def calculate_asa(charge_sa):
         """calculate solvent-accessible surface area."""
@@ -42,7 +42,7 @@ class CPSA:
 
         :param arc_file: Path to MOPAC .arc file
         """
-        charge_sa = CPSA.get_charge_sa(arc_file, radius_probe =0, n_sphere_point=960)
+        charge_sa = CPSA.get_charge_sa(arc_file, radius_probe=0, n_sphere_point=960)
         res = 0.0
         for i in charge_sa:
             res = res + i[2]
@@ -292,34 +292,34 @@ class CPSA:
         """
         res = {}
         charge_sa = CPSA.get_charge_sa(arc_file, radius_probe=1.5, n_sphere_point=5000)
-        res['SASA'] = CPSA.calculate_asa(charge_sa)
-        res['MSA'] = CPSA.calculate_msa(arc_file)
-        res['PNSA1'] = CPSA.calculate_pnsa1(charge_sa)
-        res['PPSA1'] = CPSA.calculate_ppsa1(charge_sa)
-        res['PNSA2'] = CPSA.calculate_pnsa2(charge_sa)
-        res['PPSA2'] = CPSA.calculate_ppsa2(charge_sa)
-        res['PNSA3'] = CPSA.calculate_pnsa3(charge_sa)
-        res['PPSA3'] = CPSA.calculate_ppsa3(charge_sa)
-        res['DPSA1'] = CPSA.calculate_dpsa1(charge_sa)
-        res['DPSA2'] = CPSA.calculate_dpsa2(charge_sa)
-        res['DPSA3'] = CPSA.calculate_dpsa3(charge_sa)
-        res['FNSA1'] = CPSA.calculate_fnsa1(charge_sa)
-        res['FNSA2'] = CPSA.calculate_fnsa2(charge_sa)
-        res['FNSA3'] = CPSA.calculate_fnsa3(charge_sa)
-        res['FPSA1'] = CPSA.calculate_fpsa1(charge_sa)
-        res['FPSA2'] = CPSA.calculate_fpsa2(charge_sa)
-        res['FPSA3'] = CPSA.calculate_fpsa3(charge_sa)
-        res['WNSA1'] = CPSA.calculate_wnsa1(charge_sa)
-        res['WNSA2'] = CPSA.calculate_wnsa2(charge_sa)
-        res['WNSA3'] = CPSA.calculate_wnsa3(charge_sa)
-        res['WPSA1'] = CPSA.calculate_wpsa1(charge_sa)
-        res['WPSA2'] = CPSA.calculate_wpsa2(charge_sa)
-        res['WPSA3'] = CPSA.calculate_wpsa3(charge_sa)
-        res['TASA'] = CPSA.calculate_tasa(charge_sa)
-        res['TotPSA'] = CPSA.calculate_tpsa(charge_sa)
-        res['FrTATP'] = CPSA.calculate_ratiotatp(charge_sa)
-        res['RASA'] = CPSA.calculate_rasa(charge_sa)
-        res['RPSA'] = CPSA.calculate_rpsa(charge_sa)
-        res['RNCS'] = CPSA.calculate_rncs(charge_sa)
-        res['RPCS'] = CPSA.calculate_rpcs(charge_sa)
+        res["SASA"] = CPSA.calculate_asa(charge_sa)
+        res["MSA"] = CPSA.calculate_msa(arc_file)
+        res["PNSA1"] = CPSA.calculate_pnsa1(charge_sa)
+        res["PPSA1"] = CPSA.calculate_ppsa1(charge_sa)
+        res["PNSA2"] = CPSA.calculate_pnsa2(charge_sa)
+        res["PPSA2"] = CPSA.calculate_ppsa2(charge_sa)
+        res["PNSA3"] = CPSA.calculate_pnsa3(charge_sa)
+        res["PPSA3"] = CPSA.calculate_ppsa3(charge_sa)
+        res["DPSA1"] = CPSA.calculate_dpsa1(charge_sa)
+        res["DPSA2"] = CPSA.calculate_dpsa2(charge_sa)
+        res["DPSA3"] = CPSA.calculate_dpsa3(charge_sa)
+        res["FNSA1"] = CPSA.calculate_fnsa1(charge_sa)
+        res["FNSA2"] = CPSA.calculate_fnsa2(charge_sa)
+        res["FNSA3"] = CPSA.calculate_fnsa3(charge_sa)
+        res["FPSA1"] = CPSA.calculate_fpsa1(charge_sa)
+        res["FPSA2"] = CPSA.calculate_fpsa2(charge_sa)
+        res["FPSA3"] = CPSA.calculate_fpsa3(charge_sa)
+        res["WNSA1"] = CPSA.calculate_wnsa1(charge_sa)
+        res["WNSA2"] = CPSA.calculate_wnsa2(charge_sa)
+        res["WNSA3"] = CPSA.calculate_wnsa3(charge_sa)
+        res["WPSA1"] = CPSA.calculate_wpsa1(charge_sa)
+        res["WPSA2"] = CPSA.calculate_wpsa2(charge_sa)
+        res["WPSA3"] = CPSA.calculate_wpsa3(charge_sa)
+        res["TASA"] = CPSA.calculate_tasa(charge_sa)
+        res["TotPSA"] = CPSA.calculate_tpsa(charge_sa)
+        res["FrTATP"] = CPSA.calculate_ratiotatp(charge_sa)
+        res["RASA"] = CPSA.calculate_rasa(charge_sa)
+        res["RPSA"] = CPSA.calculate_rpsa(charge_sa)
+        res["RNCS"] = CPSA.calculate_rncs(charge_sa)
+        res["RPCS"] = CPSA.calculate_rpcs(charge_sa)
         return res

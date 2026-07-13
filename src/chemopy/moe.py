@@ -42,7 +42,7 @@ class MOE:
         temp = MolSurf.SlogP_VSA_(mol, bins, force=1)
         res = {}
         for i, j in enumerate(temp):
-            res[f'slogPVSA{i}'] = j
+            res[f"slogPVSA{i}"] = j
         return res
 
     @staticmethod
@@ -55,7 +55,7 @@ class MOE:
         temp = MolSurf.SMR_VSA_(mol, bins, force=1)
         res = {}
         for i, j in enumerate(temp):
-            res[f'SMRVSA{i}'] = j
+            res[f"SMRVSA{i}"] = j
         return res
 
     @staticmethod
@@ -68,7 +68,7 @@ class MOE:
         temp = MolSurf.PEOE_VSA_(mol, bins, force=1)
         res = {}
         for i, j in enumerate(temp):
-            res[f'PEOEVSA{i}'] = j
+            res[f"PEOEVSA{i}"] = j
         return res
 
     @staticmethod
@@ -81,7 +81,7 @@ class MOE:
         temp = EVSA.EState_VSA_(mol, bins, force=1)
         res = {}
         for i, j in enumerate(temp):
-            res[f'EstateVSA{i}'] = j
+            res[f"EstateVSA{i}"] = j
         return res
 
     @staticmethod
@@ -94,15 +94,15 @@ class MOE:
         temp = EVSA.VSA_EState_(mol, bins, force=1)
         res = {}
         for i, j in enumerate(temp):
-            res[f'VSAEstate{i}'] = j
+            res[f"VSAEstate{i}"] = j
         return res
 
     @staticmethod
     def get_all(mol: Chem.Mol) -> dict:
         """Calculate all (59) MOE-type descriptors."""
         result = {}
-        result['TPSA1'] = MOE.calculate_tpsa(mol)
-        result['LabuteASA'] = MOE.calculate_labute_asa(mol)
+        result["TPSA1"] = MOE.calculate_tpsa(mol)
+        result["LabuteASA"] = MOE.calculate_labute_asa(mol)
         result.update(MOE.calculate_slogpvsa(mol, bins=None))  # 12 values
         result.update(MOE.calculate_smrvsa(mol, bins=None))  # 10 values
         result.update(MOE.calculate_peoevsa(mol, bins=None))  # 14 values

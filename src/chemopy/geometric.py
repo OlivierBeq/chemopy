@@ -23,7 +23,9 @@ class Geometric:
     """Geometrical molecular descriptors."""
 
     @staticmethod
-    def _get_center_of_mass(mass_coordinates: List[Tuple[float, Tuple[float, float, float]]]) -> Tuple[float, float, float]:
+    def _get_center_of_mass(
+        mass_coordinates: List[Tuple[float, Tuple[float, float, float]]],
+    ) -> Tuple[float, float, float]:
         """Get the center of mass.
 
         :param mass_coordinates: list of atomic masses and coordinates
@@ -77,7 +79,7 @@ class Geometric:
         """
         temp = []
         for i in charge_coordinates:
-            if i[0] != 'H':
+            if i[0] != "H":
                 temp.append([float(i[1]), float(i[2]), float(i[3])])
         distance_matrix = get_geometrical_distance_matrix(temp)
         return np.sum(distance_matrix) / 2.0
@@ -147,8 +149,9 @@ class Geometric:
         temp = []
         atoms = list(mol.GetAtoms())
         for i, j in enumerate(charge_coordinates):
-            temp.append([periodicTable.GetAtomicWeight(atoms[i].GetAtomicNum()),
-                         [float(j[1]), float(j[2]), float(j[3])]])
+            temp.append(
+                [periodicTable.GetAtomicWeight(atoms[i].GetAtomicNum()), [float(j[1]), float(j[2]), float(j[3])]]
+            )
         nAT = len(temp)
         result = 0.0
         for i in range(nAT - 1):
@@ -165,13 +168,14 @@ class Geometric:
         :param mol: molecule
         :param charge_coordinates: Atomic coordinates and charges as read by chemopy.geo_opt.read_coordinates
         """
-        raise NotImplementedError('Needs modification: calculated only on bonded atoms.')
+        raise NotImplementedError("Needs modification: calculated only on bonded atoms.")
         mol = Chem.AddHs(mol)
         temp = []
         atoms = list(mol.GetAtoms())
         for i, j in enumerate(charge_coordinates):
-            temp.append([periodicTable.GetAtomicWeight(atoms[i].GetAtomicNum()),
-                         [float(j[1]), float(j[2]), float(j[3])]])
+            temp.append(
+                [periodicTable.GetAtomicWeight(atoms[i].GetAtomicNum()), [float(j[1]), float(j[2]), float(j[3])]]
+            )
         nAT = len(temp)
         result = 0.0
         for i in range(nAT - 1):
@@ -191,8 +195,9 @@ class Geometric:
         temp = []
         atoms = list(mol.GetAtoms())
         for i, j in enumerate(charge_coordinates):
-            temp.append([periodicTable.GetAtomicWeight(atoms[i].GetAtomicNum()),
-                         [float(j[1]), float(j[2]), float(j[3])]])
+            temp.append(
+                [periodicTable.GetAtomicWeight(atoms[i].GetAtomicNum()), [float(j[1]), float(j[2]), float(j[3])]]
+            )
         nAT = len(temp)
         com = Geometric._get_center_of_mass(temp)
         result = 0.0
@@ -212,8 +217,9 @@ class Geometric:
         temp = []
         atoms = list(mol.GetAtoms())
         for i, j in enumerate(charge_coordinates):
-            temp.append([periodicTable.GetAtomicWeight(atoms[i].GetAtomicNum()),
-                         [float(j[1]), float(j[2]), float(j[3])]])
+            temp.append(
+                [periodicTable.GetAtomicWeight(atoms[i].GetAtomicNum()), [float(j[1]), float(j[2]), float(j[3])]]
+            )
         nAT = len(temp)
         inertia_matrix = np.zeros((3, 3))
         res11 = 0.0
@@ -255,9 +261,9 @@ class Geometric:
         inertia_matrix = (inertia_matrix - bb * ma.T) / (bb * ms.T)
         u, s, v = np.linalg.svd(inertia_matrix)
         res = {}
-        res['IA'] = s[2]
-        res['IB'] = s[1]
-        res['IC'] = s[0]
+        res["IA"] = s[2]
+        res["IB"] = s[1]
+        res["IC"] = s[0]
         return res
 
     @staticmethod
@@ -270,9 +276,9 @@ class Geometric:
         """
         temp = Geometric.calculate_principal_moment_of_inertia(mol, charge_coordinates)
         res = {}
-        res['IA/B'] = temp['IA'] / temp['IB']
-        res['IA/C'] = temp['IA'] / temp['IC']
-        res['IB/C'] = temp['IB'] / temp['IC']
+        res["IA/B"] = temp["IA"] / temp["IB"]
+        res["IA/C"] = temp["IA"] / temp["IC"]
+        res["IB/C"] = temp["IB"] / temp["IC"]
         return res
 
     @staticmethod
@@ -292,7 +298,7 @@ class Geometric:
                 if distance_matrix[i, j] == 0:
                     cds = 0.0
                 else:
-                    cds = 1. / distance_matrix[i, j]
+                    cds = 1.0 / distance_matrix[i, j]
                 res = res + cds
         return res
 
@@ -342,8 +348,9 @@ class Geometric:
         temp = []
         atoms = list(mol.GetAtoms())
         for i, j in enumerate(charge_coordinates):
-            temp.append([periodicTable.GetAtomicWeight(atoms[i].GetAtomicNum()),
-                         [float(j[1]), float(j[2]), float(j[3])]])
+            temp.append(
+                [periodicTable.GetAtomicWeight(atoms[i].GetAtomicNum()), [float(j[1]), float(j[2]), float(j[3])]]
+            )
         masscenter = Geometric._get_center_of_mass(temp)
         res = []
         for i in temp:
@@ -362,8 +369,9 @@ class Geometric:
         temp = []
         atoms = list(mol.GetAtoms())
         for i, j in enumerate(charge_coordinates):
-            temp.append([periodicTable.GetAtomicWeight(atoms[i].GetAtomicNum()),
-                         [float(j[1]), float(j[2]), float(j[3])]])
+            temp.append(
+                [periodicTable.GetAtomicWeight(atoms[i].GetAtomicNum()), [float(j[1]), float(j[2]), float(j[3])]]
+            )
         nAT = len(temp)
         masscenter = Geometric._get_center_of_mass(temp)
         res = []
@@ -385,7 +393,7 @@ class Geometric:
         u, s, v = np.linalg.svd(inertia_matrix)
         res1 = s[0]
         res3 = s[2]
-        res = math.pow(res1 * res1 - res3 * res3, 1. / 2) / res1
+        res = math.pow(res1 * res1 - res3 * res3, 1.0 / 2) / res1
         return res
 
     @staticmethod
@@ -397,20 +405,22 @@ class Geometric:
         """
         res = {}
         charge_coordinates = read_coordinates(arc_file)
-        res['W3DH'] = Geometric.calculate_3D_wiener_with_h(charge_coordinates)
-        res['W3D'] = Geometric.calculate_3D_wiener_without_h(charge_coordinates)
-        res['Petitj3D'] = Geometric.calculate_petitjean_3D_index(charge_coordinates)
-        res['GeDi'] = Geometric.calculate_geometrical_diameter(charge_coordinates)
-        res['TE1'] = Geometric.calculate_topo_electronic(charge_coordinates)
-        res['grav1'] = Geometric.calculate_gravitational_3D1(mol, charge_coordinates) if mol is not None else np.nan
+        res["W3DH"] = Geometric.calculate_3D_wiener_with_h(charge_coordinates)
+        res["W3D"] = Geometric.calculate_3D_wiener_without_h(charge_coordinates)
+        res["Petitj3D"] = Geometric.calculate_petitjean_3D_index(charge_coordinates)
+        res["GeDi"] = Geometric.calculate_geometrical_diameter(charge_coordinates)
+        res["TE1"] = Geometric.calculate_topo_electronic(charge_coordinates)
+        res["grav1"] = Geometric.calculate_gravitational_3D1(mol, charge_coordinates) if mol is not None else np.nan
         # res['grav2'] = Geometric.CalculateGravitational3D2(mol, charge_coordinates)
-        res['rygr'] = Geometric.calculate_radius_of_gyration(mol, charge_coordinates) if mol is not None else np.nan
-        res['Harary3D'] = Geometric.calculate_harary_3D(charge_coordinates)
-        res['AGDD'] = Geometric.calculate_average_geometrical_distance_degree(charge_coordinates)
-        res['SEig'] = Geometric.calculate_abs_eigenvalue_sum_on_geometric_matrix(charge_coordinates)
-        res['SPAN'] = Geometric.calculate_span_r(mol, charge_coordinates) if mol is not None else np.nan
-        res['ASPAN'] = Geometric.calculate_average_span_r(mol, charge_coordinates) if mol is not None else np.nan
-        res['MEcc'] = Geometric.calculate_molecular_eccentricity(mol, charge_coordinates) if mol is not None else np.nan
-        res.update(Geometric.calculate_principal_moment_of_inertia(mol, charge_coordinates)) if mol is not None else np.nan
+        res["rygr"] = Geometric.calculate_radius_of_gyration(mol, charge_coordinates) if mol is not None else np.nan
+        res["Harary3D"] = Geometric.calculate_harary_3D(charge_coordinates)
+        res["AGDD"] = Geometric.calculate_average_geometrical_distance_degree(charge_coordinates)
+        res["SEig"] = Geometric.calculate_abs_eigenvalue_sum_on_geometric_matrix(charge_coordinates)
+        res["SPAN"] = Geometric.calculate_span_r(mol, charge_coordinates) if mol is not None else np.nan
+        res["ASPAN"] = Geometric.calculate_average_span_r(mol, charge_coordinates) if mol is not None else np.nan
+        res["MEcc"] = Geometric.calculate_molecular_eccentricity(mol, charge_coordinates) if mol is not None else np.nan
+        res.update(
+            Geometric.calculate_principal_moment_of_inertia(mol, charge_coordinates)
+        ) if mol is not None else np.nan
         res.update(Geometric.calculate_ratio_pmi(mol, charge_coordinates)) if mol is not None else np.nan
         return res

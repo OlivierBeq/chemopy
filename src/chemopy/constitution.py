@@ -79,7 +79,6 @@ class Constitution:
         """calculate_ number of Fluorine atoms."""
         return Constitution._calculate_element_number(mol, Atomic_number=17)
 
-
     def calculate_bromine_number(mol: Chem.Mol) -> float:
         """calculate_ number of Bromine atoms."""
         return Constitution._calculate_element_number(mol, Atomic_number=35)
@@ -139,7 +138,7 @@ class Constitution:
         """calculate_ number of single bonds."""
         i = 0
         for bond in mol.GetBonds():
-            if bond.GetBondType().name == 'SINGLE':
+            if bond.GetBondType().name == "SINGLE":
                 i += 1
         return i
 
@@ -148,7 +147,7 @@ class Constitution:
         """calculate_ number of double bonds."""
         i = 0
         for bond in mol.GetBonds():
-            if bond.GetBondType().name == 'DOUBLE':
+            if bond.GetBondType().name == "DOUBLE":
                 i += 1
         return i
 
@@ -157,7 +156,7 @@ class Constitution:
         """calculate_ number of triple bonds."""
         i = 0
         for bond in mol.GetBonds():
-            if bond.GetBondType().name == 'TRIPLE':
+            if bond.GetBondType().name == "TRIPLE":
                 i += 1
         return i
 
@@ -166,7 +165,7 @@ class Constitution:
         """calculate_ number of aromatic bonds."""
         i = 0
         for bond in mol.GetBonds():
-            if bond.GetBondType().name == 'AROMATIC':
+            if bond.GetBondType().name == "AROMATIC":
                 i += 1
         return i
 
@@ -219,34 +218,35 @@ class Constitution:
         return result
 
 
-_constitutional = {'Weight': Constitution.calculate_heavy_mol_weight,
-                   'nH': Constitution.calculate_hydrogen_number,
-                   'nHal': Constitution.calculate_halogen_number,
-                   'nHet': Constitution.calculate_hetero_number,
-                   'nHA': Constitution.calculate_heavy_atom_number,
-                   'nF': Constitution.calculate_fluorine_number,
-                   'nCl': Constitution.calculate_chlorine_number,
-                   'nBr': Constitution.calculate_bromine_number,
-                   'nI': Constitution.calculate_iodine_number,
-                   'nC': Constitution.calculate_carbon_number,
-                   'nP': Constitution.calculate_phosphor_number,
-                   'nS': Constitution.calculate_oxygen_number,
-                   'nO': Constitution.calculate_oxygen_number,
-                   'nN': Constitution.calculate_nitrogen_number,
-                   'nRing': Constitution.calculate_ring_number,
-                   'nRotB': Constitution.calculate_rot_bond_number,
-                   'nHBD': Constitution.calculate_hdonor_number,
-                   'nHBA': Constitution.calculate_hacceptor_number,
-                   'nSBond': Constitution.calculate_singlebond_number,
-                   'nDBond': Constitution.calculate_doublebond_number,
-                   'nTBond': Constitution.calculate_triplebond_number,
-                   'nAroBond': Constitution.calculate_aromaticbond_number,
-                   'nAtom': Constitution.calculate_allatom_number,
-                   'AWeight': Constitution.calculate_average_mol_weight,
-                   'path_L1': Constitution.calculate_path_1,
-                   'path_L2': Constitution.calculate_path_2,
-                   'path_L3': Constitution.calculate_path_3,
-                   'path_L4': Constitution.calculate_path_4,
-                   'path_L5': Constitution.calculate_path_5,
-                   'path_L6': Constitution.calculate_path_6,
-                   }
+_constitutional = {
+    "Weight": Constitution.calculate_heavy_mol_weight,
+    "nH": Constitution.calculate_hydrogen_number,
+    "nHal": Constitution.calculate_halogen_number,
+    "nHet": Constitution.calculate_hetero_number,
+    "nHA": Constitution.calculate_heavy_atom_number,
+    "nF": Constitution.calculate_fluorine_number,
+    "nCl": Constitution.calculate_chlorine_number,
+    "nBr": Constitution.calculate_bromine_number,
+    "nI": Constitution.calculate_iodine_number,
+    "nC": Constitution.calculate_carbon_number,
+    "nP": Constitution.calculate_phosphor_number,
+    "nS": Constitution.calculate_oxygen_number,
+    "nO": Constitution.calculate_oxygen_number,
+    "nN": Constitution.calculate_nitrogen_number,
+    "nRing": Constitution.calculate_ring_number,
+    "nRotB": Constitution.calculate_rot_bond_number,
+    "nHBD": Constitution.calculate_hdonor_number,
+    "nHBA": Constitution.calculate_hacceptor_number,
+    "nSBond": Constitution.calculate_singlebond_number,
+    "nDBond": Constitution.calculate_doublebond_number,
+    "nTBond": Constitution.calculate_triplebond_number,
+    "nAroBond": Constitution.calculate_aromaticbond_number,
+    "nAtom": Constitution.calculate_allatom_number,
+    "AWeight": Constitution.calculate_average_mol_weight,
+    "path_L1": Constitution.calculate_path_1,
+    "path_L2": Constitution.calculate_path_2,
+    "path_L3": Constitution.calculate_path_3,
+    "path_L4": Constitution.calculate_path_4,
+    "path_L5": Constitution.calculate_path_5,
+    "path_L6": Constitution.calculate_path_6,
+}

@@ -38,45 +38,57 @@ class QuantumChemistry:
     @staticmethod
     def read_file(filename: str) -> dict:
         """Read basic quantum chemistry descriptors from an .arc file."""
-        inputdict = {'Hf': np.nan, 'ET': np.nan, 'mu': np.nan, 'EHomo': np.nan, 'ELumo': np.nan,
-                     'ESomo': np.nan, 'EaSomo': np.nan, 'EaLumo': np.nan, 'EbSomo': np.nan, 'EbLumo': np.nan,
-                     'mMw': np.nan, 'CoArea': np.nan, 'CoVolume': np.nan}
-        f = open(filename, 'r')
+        inputdict = {
+            "Hf": np.nan,
+            "ET": np.nan,
+            "mu": np.nan,
+            "EHomo": np.nan,
+            "ELumo": np.nan,
+            "ESomo": np.nan,
+            "EaSomo": np.nan,
+            "EaLumo": np.nan,
+            "EbSomo": np.nan,
+            "EbLumo": np.nan,
+            "mMw": np.nan,
+            "CoArea": np.nan,
+            "CoVolume": np.nan,
+        }
+        f = open(filename, "r")
         for line in f.readlines():
             value = line[10:34].strip()
             if value == "HEAT OF FORMATION":
                 # 1ev = 96.4853 kj/mol
-                inputdict['Hf'] = float(line.strip().upper().split('=')[-1].upper().strip('KJ/MOL')) / 96.4853
+                inputdict["Hf"] = float(line.strip().upper().split("=")[-1].upper().strip("KJ/MOL")) / 96.4853
             if value == "TOTAL ENERGY":
-                inputdict['ET'] = float(line.strip().upper().split('=')[1].upper().strip('EV'))
+                inputdict["ET"] = float(line.strip().upper().split("=")[1].upper().strip("EV"))
             if value == "DIPOLE":
-                inputdict['mu'] = float(line.strip().upper().split('=')[1].split('DEBYE')[0])
+                inputdict["mu"] = float(line.strip().upper().split("=")[1].split("DEBYE")[0])
             if value.startswith("HOMO LUMO ENERGIES"):
-                values = re.match(r'(-?\d+\.\d{3})\s*(-?\d+\.\d{3})', line.split('=')[1].strip())
-                inputdict['EHomo'] = float(values.group(1))
-                inputdict['ELumo'] = float(values.group(2))
+                values = re.match(r"(-?\d+\.\d{3})\s*(-?\d+\.\d{3})", line.split("=")[1].strip())
+                inputdict["EHomo"] = float(values.group(1))
+                inputdict["ELumo"] = float(values.group(2))
             elif value.startswith("HOMO (SOMO) LUMO"):
-                data = line.split('=')[1].strip().translate(str.maketrans('', '', '()'))
-                values = re.match(r'(-?\d+\.\d{3})\s*(-?\d+\.\d{3})\s*(-?\d+\.\d{3})', data)
-                inputdict['EHomo'] = float(values.group(1))
-                inputdict['ESomo'] = float(values.group(2))
-                inputdict['ELumo'] = float(values.group(3))
+                data = line.split("=")[1].strip().translate(str.maketrans("", "", "()"))
+                values = re.match(r"(-?\d+\.\d{3})\s*(-?\d+\.\d{3})\s*(-?\d+\.\d{3})", data)
+                inputdict["EHomo"] = float(values.group(1))
+                inputdict["ESomo"] = float(values.group(2))
+                inputdict["ELumo"] = float(values.group(3))
             elif value.startswith("ALPHA SOMO LUMO"):
-                data = line.split('=')[1].strip().translate(str.maketrans('', '', '()'))
-                values = re.match(r'(-?\d+\.\d{3})\s*(-?\d+\.\d{3})', data)
-                inputdict['EaSomo'] = float(values.group(1))
-                inputdict['EaLumo'] = float(values.group(2))
+                data = line.split("=")[1].strip().translate(str.maketrans("", "", "()"))
+                values = re.match(r"(-?\d+\.\d{3})\s*(-?\d+\.\d{3})", data)
+                inputdict["EaSomo"] = float(values.group(1))
+                inputdict["EaLumo"] = float(values.group(2))
             elif value.startswith("BETA  SOMO LUMO"):
-                data = line.split('=')[1].strip().translate(str.maketrans('', '', '()'))
-                values = re.match(r'(-?\d+\.\d{3})\s*(-?\d+\.\d{3})', data)
-                inputdict['EbSomo'] = float(values.group(1))
-                inputdict['EbLumo'] = float(values.group(2))
+                data = line.split("=")[1].strip().translate(str.maketrans("", "", "()"))
+                values = re.match(r"(-?\d+\.\d{3})\s*(-?\d+\.\d{3})", data)
+                inputdict["EbSomo"] = float(values.group(1))
+                inputdict["EbLumo"] = float(values.group(2))
             if line[10:26] == "MOLECULAR WEIGHT":
-                inputdict['mMw'] = float(line[-12:-1])
+                inputdict["mMw"] = float(line[-12:-1])
             elif value == "COSMO AREA":
-                inputdict['CoArea'] = float(line.split('=')[1].strip().split()[0])
+                inputdict["CoArea"] = float(line.split("=")[1].strip().split()[0])
             elif value == "COSMO VOLUME":
-                inputdict['CoVolume'] = float(line.split('=')[1].strip().split()[0])
+                inputdict["CoVolume"] = float(line.split("=")[1].strip().split()[0])
         f.close()
         return inputdict
 
@@ -87,7 +99,7 @@ class QuantumChemistry:
         :param arc_file: Path to MOPAC .arc file
         """
         charge = []
-        with open(arc_file, 'r') as f:
+        with open(arc_file, "r") as f:
             templine = f.readlines()
 
         for line in range(len(templine)):
@@ -95,7 +107,7 @@ class QuantumChemistry:
                 k = line
                 break
 
-        for i in templine[k + 4: len(templine) - 1]:
+        for i in templine[k + 4 : len(templine) - 1]:
             temp = i.split()
             charge.append((temp[0].strip(), temp[-1].strip()))
         return charge
@@ -115,37 +127,37 @@ class QuantumChemistry:
         Charge = QuantumChemistry._read_charge(arc_file)
         for i in Charge:
             temp.append(float(i[1]))
-            if i[0] == 'H':
+            if i[0] == "H":
                 Htemp.append(float(i[1]))
-            if i[0] == 'C':
+            if i[0] == "C":
                 Ctemp.append(float(i[1]))
-            if i[0] == 'N':
+            if i[0] == "N":
                 Ntemp.append(float(i[1]))
-            if i[0] == 'O':
+            if i[0] == "O":
                 Otemp.append(float(i[1]))
-        res['qQHmax'] = QuantumChemistry._get_max(Htemp)
-        res['qQCmax'] = QuantumChemistry._get_max(Ctemp)
-        res['qQNmax'] = QuantumChemistry._get_max(Ntemp)
-        res['qQOmax'] = QuantumChemistry._get_max(Otemp)
-        res['qQHmin'] = QuantumChemistry._get_min(Htemp)
-        res['qQCmin'] = QuantumChemistry._get_min(Ctemp)
-        res['qQNmin'] = QuantumChemistry._get_min(Ntemp)
-        res['qQOmin'] = QuantumChemistry._get_min(Otemp)
-        res['qQmax'] = max(temp)
-        res['qQmin'] = min(temp)
-        res['qQHss'] = sum(i * i for i in Htemp)
-        res['qQCss'] = sum(i * i for i in Ctemp)
-        res['qQNss'] = sum(i * i for i in Ntemp)
-        res['qQOss'] = sum(i * i for i in Otemp)
-        res['qQass'] = sum(i * i for i in temp)
-        res['qMpc'] = np.mean([i for i in temp if i > 0])
-        res['qTpc'] = sum(i for i in temp if i > 0)
-        res['qMnc'] = np.mean([i for i in temp if i < 0])
-        res['qTnc'] = sum(i for i in temp if i < 0)
-        res['qMac'] = np.mean([np.abs(i) for i in temp])
-        res['qTac'] = sum(np.abs(i) for i in temp)
-        res['qRpc'] = QuantumChemistry._get_max(temp) / res['qTpc'] if res['qTpc'] != 0 else np.nan
-        res['qRnc'] = QuantumChemistry._get_min(temp) / res['qTnc'] if res['qTnc'] != 0 else np.nan
+        res["qQHmax"] = QuantumChemistry._get_max(Htemp)
+        res["qQCmax"] = QuantumChemistry._get_max(Ctemp)
+        res["qQNmax"] = QuantumChemistry._get_max(Ntemp)
+        res["qQOmax"] = QuantumChemistry._get_max(Otemp)
+        res["qQHmin"] = QuantumChemistry._get_min(Htemp)
+        res["qQCmin"] = QuantumChemistry._get_min(Ctemp)
+        res["qQNmin"] = QuantumChemistry._get_min(Ntemp)
+        res["qQOmin"] = QuantumChemistry._get_min(Otemp)
+        res["qQmax"] = max(temp)
+        res["qQmin"] = min(temp)
+        res["qQHss"] = sum(i * i for i in Htemp)
+        res["qQCss"] = sum(i * i for i in Ctemp)
+        res["qQNss"] = sum(i * i for i in Ntemp)
+        res["qQOss"] = sum(i * i for i in Otemp)
+        res["qQass"] = sum(i * i for i in temp)
+        res["qMpc"] = np.mean([i for i in temp if i > 0])
+        res["qTpc"] = sum(i for i in temp if i > 0)
+        res["qMnc"] = np.mean([i for i in temp if i < 0])
+        res["qTnc"] = sum(i for i in temp if i < 0)
+        res["qMac"] = np.mean([np.abs(i) for i in temp])
+        res["qTac"] = sum(np.abs(i) for i in temp)
+        res["qRpc"] = QuantumChemistry._get_max(temp) / res["qTpc"] if res["qTpc"] != 0 else np.nan
+        res["qRnc"] = QuantumChemistry._get_min(temp) / res["qTnc"] if res["qTnc"] != 0 else np.nan
         return res
 
     @staticmethod
@@ -154,23 +166,23 @@ class QuantumChemistry:
 
         Derived from Lumo, Homo, dipole moment, enthalpy and the total energy.
         """
-        if inputdict.get('EHomo') is not None:
-            EHomo = inputdict['EHomo']
+        if inputdict.get("EHomo") is not None:
+            EHomo = inputdict["EHomo"]
         else:
-            EHomo = inputdict['EaSomo']
-        if inputdict.get('ELumo') is not None:
-            ELumo = inputdict['ELumo']
+            EHomo = inputdict["EaSomo"]
+        if inputdict.get("ELumo") is not None:
+            ELumo = inputdict["ELumo"]
         else:
-            ELumo = inputdict['EaLumo']
+            ELumo = inputdict["EaLumo"]
         dict_ = {}
         dict_.update(inputdict)
-        dict_['GAP'] = ELumo - EHomo
-        dict_['S'] = 2. / (ELumo - EHomo) if (ELumo - EHomo) != 0 else np.nan
-        dict_['eta'] = (ELumo - EHomo) / 2.0
-        dict_['fHL'] = EHomo / ELumo if ELumo != 0 else np.nan
-        dict_['IP'] = -EHomo
-        dict_['EA'] = -ELumo
-        dict_['xmu'] = (-ELumo - EHomo) / 2.0
+        dict_["GAP"] = ELumo - EHomo
+        dict_["S"] = 2.0 / (ELumo - EHomo) if (ELumo - EHomo) != 0 else np.nan
+        dict_["eta"] = (ELumo - EHomo) / 2.0
+        dict_["fHL"] = EHomo / ELumo if ELumo != 0 else np.nan
+        dict_["IP"] = -EHomo
+        dict_["EA"] = -ELumo
+        dict_["xmu"] = (-ELumo - EHomo) / 2.0
         return dict_
 
     @staticmethod
