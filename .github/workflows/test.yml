@@ -1,0 +1,36 @@
+name: Tests
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.10", "3.11", "3.12"]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up micromamba environment
+        uses: mamba-org/setup-micromamba@v2
+        with:
+          environment-name: chemopy-ci
+          create-args: >-
+            python=${{ matrix.python-version }}
+            rdkit
+            openbabel
+            mopac
+            pandas
+            pip
+          channels: conda-forge
+
+      - name: Install chemopy with test dependencies
+        shell: bash -el {0}
+        run: pip install -e ".[tests]"
+
+      - name: Run tests with coverage
+        shell: bash -el {0}
+        run: pytest --cov=chemopy --cov-report=term-missing --cov-fail-under=80
