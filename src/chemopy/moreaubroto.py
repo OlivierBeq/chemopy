@@ -3,7 +3,6 @@
 
 """Moreau-Broto autocorrelation descriptors."""
 
-
 import numpy as np
 from rdkit import Chem
 
@@ -14,25 +13,18 @@ class MoreauBroto:
     """Moreau-Broto autocorrelation descriptors."""
 
     @staticmethod
-    def _calculate_moreau_broto_autocorrelation(mol: Chem.Mol, lag: int = 1, propertylabel: str = 'm') -> float:
+    def _calculate_moreau_broto_autocorrelation(mol: Chem.Mol, lag: int = 1, propertylabel: str = "m") -> float:
         """Calculate weighted Moreau-Broto autocorrelation descriptors.
 
         :param lag: topological distance between atom i and atom j.
         :param propertylabel: type of weighted property
         """
-        Natom = mol.GetNumAtoms()
         distance_matrix = Chem.GetDistanceMatrix(mol)
-        res = 0.0
-        for i in range(Natom):
-            for j in range(Natom):
-                if distance_matrix[i, j] == lag:
-                    atom1 = mol.GetAtomWithIdx(i)
-                    atom2 = mol.GetAtomWithIdx(j)
-                    temp1 = get_relative_atomic_property(element=atom1.GetSymbol(), propertyname=propertylabel)
-                    temp2 = get_relative_atomic_property(element=atom2.GetSymbol(), propertyname=propertylabel)
-                    res = res + temp1 * temp2
-                else:
-                    res = res + 0.0
+        prop = np.array(
+            [get_relative_atomic_property(atom.GetSymbol(), propertyname=propertylabel) for atom in mol.GetAtoms()]
+        )
+        mask = distance_matrix == lag
+        res = np.outer(prop, prop)[mask].sum()
         return np.log(res / 2 + 1)
 
     @staticmethod
@@ -40,7 +32,7 @@ class MoreauBroto:
         """Calculate Moreau-Broto autocorrelation with carbon-scaled atomic mass."""
         res = {}
         for i in range(8):
-            res[f'ATSm{i + 1}'] = MoreauBroto._calculate_moreau_broto_autocorrelation(mol, lag=i + 1, propertylabel='m')
+            res[f"ATSm{i + 1}"] = MoreauBroto._calculate_moreau_broto_autocorrelation(mol, lag=i + 1, propertylabel="m")
         return res
 
     @staticmethod
@@ -48,7 +40,7 @@ class MoreauBroto:
         """Calculate Moreau-Broto autocorrelation with carbon-scaled atomic van der Waals volume."""
         res = {}
         for i in range(8):
-            res[f'ATSv{i + 1}'] = MoreauBroto._calculate_moreau_broto_autocorrelation(mol, lag=i + 1, propertylabel='V')
+            res[f"ATSv{i + 1}"] = MoreauBroto._calculate_moreau_broto_autocorrelation(mol, lag=i + 1, propertylabel="V")
         return res
 
     @staticmethod
@@ -56,7 +48,9 @@ class MoreauBroto:
         """Calculate Moreau-Broto autocorrelation with carbon-scaled atomic Sanderson electronegativity."""
         res = {}
         for i in range(8):
-            res[f'ATSe{i + 1}'] = MoreauBroto._calculate_moreau_broto_autocorrelation(mol, lag=i + 1, propertylabel='En')
+            res[f"ATSe{i + 1}"] = MoreauBroto._calculate_moreau_broto_autocorrelation(
+                mol, lag=i + 1, propertylabel="En"
+            )
         return res
 
     @staticmethod
@@ -64,7 +58,9 @@ class MoreauBroto:
         """Calculate Moreau-Broto autocorrelation with carbon-scaled atomic polarizability."""
         res = {}
         for i in range(8):
-            res[f'ATSp{i + 1}'] = MoreauBroto._calculate_moreau_broto_autocorrelation(mol, lag=i + 1, propertylabel='alapha')
+            res[f"ATSp{i + 1}"] = MoreauBroto._calculate_moreau_broto_autocorrelation(
+                mol, lag=i + 1, propertylabel="alapha"
+            )
         return res
 
     @staticmethod
