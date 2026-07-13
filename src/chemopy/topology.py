@@ -64,12 +64,12 @@ class Topology:
         Natom = mol.GetNumAtoms()
         S = np.sum(Distance, axis=1)
         mu = Nbond - Natom + 1
-        sumk = 0.
-        for i in range(len(Distance)):
-            si = S[i]
-            for j in range(i, len(Distance)):
-                if adjMat[i, j] == 1:
-                    sumk += 1. / np.sqrt(si * S[j])
+        # adjMat's diagonal is always 0 (no self-bonds), so the i==j case in the reference
+        # i in range(n), j in range(i, n) loop never satisfies adjMat[i, j] == 1 anyway;
+        # a strict upper triangle (k=1) is equivalent and lets this vectorize with numpy.
+        iu = np.triu_indices(Natom, k=1)
+        bonded = adjMat[iu] == 1
+        sumk = np.sum(1.0 / np.sqrt(S[iu[0][bonded]] * S[iu[1][bonded]]))
         if mu + 1 != 0:
             J = float(Nbond) / float(mu + 1) * sumk
         else:
@@ -85,9 +85,10 @@ class Topology:
         Distance = Chem.GetDistanceMatrix(mol)
         res = 0.0
         for i in np.unique(Distance.ravel()):
-            if i == 0 or i == 1.e+08: continue
-            temp = 1. / 2 * sum(sum(Distance == i))
-            res = res + temp ** 2
+            if i == 0 or i == 1.0e08:
+                continue
+            temp = 1.0 / 2 * sum(sum(Distance == i))
+            res = res + temp**2
         return np.log10(res)
 
     @staticmethod
@@ -148,12 +149,10 @@ class Topology:
         Or GMTI.
         """
         nAT = mol.GetNumAtoms()
-        deltas = [x.GetDegree() for x in mol.GetAtoms()]
+        deltas = np.array([x.GetDegree() for x in mol.GetAtoms()], dtype=float)
         Distance = Chem.GetDistanceMatrix(mol)
-        res = 0.0
-        for i in range(nAT):
-            for j in range(i + 1, nAT):
-                res = res + deltas[i] * deltas[j] * Distance[i, j]
+        iu = np.triu_indices(nAT, k=1)
+        res = np.sum(deltas[iu[0]] * deltas[iu[1]] * Distance[iu])
         return np.log10(res)
 
     @staticmethod
@@ -163,7 +162,7 @@ class Topology:
         Or Pol.
         """
         Distance = Chem.GetDistanceMatrix(mol)
-        res = 1. / 2 * sum(sum(Distance == 3))
+        res = 1.0 / 2 * sum(sum(Distance == 3))
         return res
 
     @staticmethod
@@ -205,7 +204,7 @@ class Topology:
 
         Or Thara.
         """
-        Distance = np.array(Chem.GetDistanceMatrix(mol), 'd')
+        Distance = np.array(Chem.GetDistanceMatrix(mol), "d")
         return 1.0 / 2 * (sum(1.0 / Distance[Distance != 0]))
 
     @staticmethod
@@ -214,8 +213,8 @@ class Topology:
 
         Or Tsch.
         """
-        Distance = np.array(Chem.GetDistanceMatrix(mol), 'd')
-        Adjacent = np.array(Chem.GetAdjacencyMatrix(mol), 'd')
+        Distance = np.array(Chem.GetDistanceMatrix(mol), "d")
+        Adjacent = np.array(Chem.GetAdjacencyMatrix(mol), "d")
         VertexDegree = sum(Adjacent)
         return sum(np.dot((Distance + Adjacent), VertexDegree))
 
@@ -246,8 +245,8 @@ class Topology:
         deltas = [x.GetDegree() for x in mol.GetAtoms()]
         while 0 in deltas:
             deltas.remove(0)
-        deltas = np.array(deltas, 'd')
-        res = sum((1. / deltas) ** 2)
+        deltas = np.array(deltas, "d")
+        res = sum((1.0 / deltas) ** 2)
         return res
 
     @staticmethod
@@ -261,8 +260,8 @@ class Topology:
             return 0.0
         while 0 in cc:
             cc.remove(0)
-        cc = np.array(cc, 'd')
-        res = sum((1. / cc) ** 2)
+        cc = np.array(cc, "d")
+        res = sum((1.0 / cc) ** 2)
         return res
 
     @staticmethod
@@ -294,7 +293,7 @@ class Topology:
         deltas = [x.GetDegree() for x in mol.GetAtoms()]
         while 0 in deltas:
             deltas.remove(0)
-        deltas = np.array(deltas, 'd')
+        deltas = np.array(deltas, "d")
         res = np.prod(deltas)
         return np.log(res)
 
@@ -310,9 +309,9 @@ class Topology:
             deltas.remove(0)
         if len(deltas) == 0:
             return 0.0
-        deltas = np.array(deltas, 'd')
+        deltas = np.array(deltas, "d")
         nAtoms = mol.GetNumAtoms()
-        res = nAtoms / sum(1. / deltas)
+        res = nAtoms / sum(1.0 / deltas)
         return res
 
     @staticmethod
@@ -328,9 +327,9 @@ class Topology:
             deltas.remove(0)
         if len(deltas) == 0:
             return 0.0
-        deltas = np.array(deltas, 'd')
+        deltas = np.array(deltas, "d")
         temp = np.prod(deltas)
-        res = np.power(temp, 1. / nAtoms)
+        res = np.power(temp, 1.0 / nAtoms)
         return res
 
     @staticmethod
@@ -342,7 +341,7 @@ class Topology:
         """
         nAtoms = mol.GetNumAtoms()
         nBonds = mol.GetNumBonds()
-        res = 2. * nBonds / nAtoms
+        res = 2.0 * nBonds / nAtoms
         return res
 
     @staticmethod
@@ -387,11 +386,12 @@ class Topology:
         """
         Distance = Chem.GetDistanceMatrix(mol)
         nAT = mol.GetNumAtoms()
-        n = 1. / 2 * nAT ** 2 - nAT
+        n = 1.0 / 2 * nAT**2 - nAT
         res = 0.0
         for i in np.unique(Distance.ravel()):
-            if i == 1.e+08: continue
-            cc = 1. / 2 * sum(sum(Distance == i))
+            if i == 1.0e08:
+                continue
+            cc = 1.0 / 2 * sum(sum(Distance == i))
             if cc > 0:
                 res += cc * np.log2(cc)
         return n * np.log2(n) - res if n > 0 else np.nan
@@ -413,13 +413,14 @@ class Topology:
         """
         Distance = Chem.GetDistanceMatrix(mol)
         nAT = mol.GetNumAtoms()
-        n = 1. / 2 * nAT ** 2 - nAT
+        n = 1.0 / 2 * nAT**2 - nAT
         DisType = int(Distance.max())
         res = 0.0
         cc = np.zeros(DisType, dtype=float)
         for i in np.unique(Distance.ravel()).astype(int):
-            if i == 1.e+08: continue
-            cc[i - 1] = 1. / 2 * sum(sum(Distance == i))
+            if i == 1.0e08:
+                continue
+            cc[i - 1] = 1.0 / 2 * sum(sum(Distance == i))
         res = Topology._calculate_entropy(cc / n)
         return res
 
@@ -476,7 +477,7 @@ class Topology:
         deltas = Topology._hall_kier_deltas(mol, skipHs=0)
         while 0 in deltas:
             deltas.remove(0)
-        deltas = np.array(deltas, 'd')
+        deltas = np.array(deltas, "d")
         res = np.prod(deltas)
         return np.log(res)
 
@@ -490,12 +491,12 @@ class Topology:
         Kier and Hall's valence delta-values are used in place of atom degrees.
         From Kier L. and Hall L., J. Pharm. Sci. (1983), 72(10),1170-1173.
         """
-        deltas = Topology._hall_kier_deltas(mol, skipHs=0)
+        deltas = Topology._hall_kier_deltas(mol, skipHs=False)
         while 0 in deltas:
             deltas.remove(0)
-        deltas = np.array(deltas, 'd')
+        deltas = np.array(deltas, "d")
         nAtoms = mol.GetNumAtoms()
-        res = nAtoms / sum(1. / deltas)
+        res = nAtoms / sum(1.0 / deltas) if sum(deltas) != 0 else 0.0
         return res
 
     @staticmethod
@@ -512,9 +513,9 @@ class Topology:
         deltas = Topology._hall_kier_deltas(mol, skipHs=0)
         while 0 in deltas:
             deltas.remove(0)
-        deltas = np.array(deltas, 'd')
+        deltas = np.array(deltas, "d")
         temp = np.prod(deltas)
-        res = np.power(temp, 1. / nAtoms)
+        res = np.power(temp, 1.0 / nAtoms)
         return res
 
     @staticmethod
@@ -526,12 +527,10 @@ class Topology:
         """
         nAT = mol.GetNumAtoms()
         Distance = Chem.GetDistanceMatrix(mol)
-        res = 0.0
-        Atom = mol.GetAtoms()
-        for i in range(nAT - 1):
-            for j in range(i + 1, nAT):
-                temp = Atom[i].GetMass() * Atom[j].GetMass()
-                res = res + temp / np.power(Distance[i][j], 2)
+        masses = np.array([atom.GetMass() for atom in mol.GetAtoms()])
+        iu = np.triu_indices(nAT, k=1)
+        mass_products = masses[iu[0]] * masses[iu[1]]
+        res = np.sum(mass_products / np.power(Distance[iu], 2))
         return res / 100
 
     @staticmethod
@@ -547,12 +546,10 @@ class Topology:
         params.removeIsotopes = True
         mol_ = Chem.RemoveHs(mol, params)
         nAT = mol_.GetNumHeavyAtoms()
-        deltas = Topology._hall_kier_deltas(mol_)
+        deltas = np.array(Topology._hall_kier_deltas(mol_), dtype=float)
         Distance = Chem.GetDistanceMatrix(mol_)
-        res = 0.0
-        for i in range(nAT):
-            for j in range(i + 1, nAT):
-                res += deltas[i] * deltas[j] * Distance[i, j]
+        iu = np.triu_indices(nAT, k=1)
+        res = np.sum(deltas[iu[0]] * deltas[iu[1]] * Distance[iu])
         return np.log10(res)
 
     def get_all(mol: Chem.Mol) -> dict:
@@ -562,39 +559,41 @@ class Topology:
             result[DesLabel] = _topology[DesLabel](mol)
         return result
 
-_topology = {'W': Topology.calculate_weiner,
-             'AW': Topology.calculate_mean_weiner,
-             'J': Topology.calculate_balaban,
-             'Thara': Topology.calculate_harary,
-             'Tsch': Topology.calculate_schiultz,
-             'Tigdi': Topology.calculate_graph_distance,
-             'Platt': Topology.calculate_platt,
-             'Xu': Topology.calculate_xu_index,
-             'Pol': Topology.calculate_polarity_number,
-             'DZ': Topology.calculate_pogliani_index,
-             'Ipc': Topology.calculate_ipc,
-             'BertzCT': Topology.calculate_bertzct,
-             'GMTI': Topology.calculate_gutman_topo,
-             'ZM1': Topology.calculate_zagreb1,
-             'ZM2': Topology.calculate_zagreb2,
-             'MZM1': Topology.calculate_mzagreb1,
-             'MZM2': Topology.calculate_mzagreb2,
-             'Qindex': Topology.calculate_quadratic,
-             'diametert': Topology.calculate_diameter,
-             'radiust': Topology.calculate_radius,
-             'petitjeant': Topology.calculate_petitjean,
-             'Sito': Topology.calculate_simple_topo_index,
-             'Hato': Topology.calculate_harmonic_topo_index,
-             'Geto': Topology.calculate_geometric_topo_index,
-             'Arto': Topology.calculate_arithmetic_topo_index,
-             'ISIZ': Topology.calculate_mol_size_total_inf,
-             'TIAC': Topology.calculate_atom_comp_total_inf,
-             'IDET': Topology.calculate_distance_equality_total_inf,
-             'IDE': Topology.calculate_distance_equality_mean_inf,
-             'IVDE': Topology.calculate_vertex_equality_total_inf,
-             'Sitov': Topology.calculate_simple_topo_vindex,
-             'Hatov': Topology.calculate_harmonic_topo_vindex,
-             'Getov': Topology.calculate_geometric_topo_vindex,
-             'Gravto': Topology.calculate_gravitational_topo_index,
-             'GMTIV': Topology.calculate_gutman_vtopo,
-             }
+
+_topology = {
+    "W": Topology.calculate_weiner,
+    "AW": Topology.calculate_mean_weiner,
+    "J": Topology.calculate_balaban,
+    "Thara": Topology.calculate_harary,
+    "Tsch": Topology.calculate_schiultz,
+    "Tigdi": Topology.calculate_graph_distance,
+    "Platt": Topology.calculate_platt,
+    "Xu": Topology.calculate_xu_index,
+    "Pol": Topology.calculate_polarity_number,
+    "DZ": Topology.calculate_pogliani_index,
+    "Ipc": Topology.calculate_ipc,
+    "BertzCT": Topology.calculate_bertzct,
+    "GMTI": Topology.calculate_gutman_topo,
+    "ZM1": Topology.calculate_zagreb1,
+    "ZM2": Topology.calculate_zagreb2,
+    "MZM1": Topology.calculate_mzagreb1,
+    "MZM2": Topology.calculate_mzagreb2,
+    "Qindex": Topology.calculate_quadratic,
+    "diametert": Topology.calculate_diameter,
+    "radiust": Topology.calculate_radius,
+    "petitjeant": Topology.calculate_petitjean,
+    "Sito": Topology.calculate_simple_topo_index,
+    "Hato": Topology.calculate_harmonic_topo_index,
+    "Geto": Topology.calculate_geometric_topo_index,
+    "Arto": Topology.calculate_arithmetic_topo_index,
+    "ISIZ": Topology.calculate_mol_size_total_inf,
+    "TIAC": Topology.calculate_atom_comp_total_inf,
+    "IDET": Topology.calculate_distance_equality_total_inf,
+    "IDE": Topology.calculate_distance_equality_mean_inf,
+    "IVDE": Topology.calculate_vertex_equality_total_inf,
+    "Sitov": Topology.calculate_simple_topo_vindex,
+    "Hatov": Topology.calculate_harmonic_topo_vindex,
+    "Getov": Topology.calculate_geometric_topo_vindex,
+    "Gravto": Topology.calculate_gravitational_topo_index,
+    "GMTIV": Topology.calculate_gutman_vtopo,
+}
