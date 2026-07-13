@@ -3,18 +3,15 @@
 
 """Class to manipulate 3D vectors."""
 
-
 from __future__ import annotations
 
 import math
-import random
-from typing import Iterable
 
 import numpy as np
 
 RAD2DEG = 180.0 / math.pi
 DEG2RAD = math.pi / 180.0
-SMALL = 1E-6
+SMALL = 1e-6
 
 
 def is_near_zero(x: float, epsilon: float = None) -> bool:
@@ -24,7 +21,7 @@ def is_near_zero(x: float, epsilon: float = None) -> bool:
     :param epsilon: extremelly small number x needs to be smaller than
                     (default: 1e-6)
     """
-    return x < SMALL if epsilon is None else x < epsilon
+    return abs(x) < SMALL if epsilon is None else abs(x) < epsilon
 
 
 class Vector3D:
@@ -56,7 +53,8 @@ class Vector3D:
 
     def __pow__(self, n: int) -> Vector3D:
         """Execute n times the Hadamard product."""
-        temp, acc = self.copy(), self.copy()
+        temp = self.copy()
+        acc = Vector3D(1.0, 1.0, 1.0)
         for _ in range(n):
             acc *= temp
         return acc
@@ -74,7 +72,7 @@ class Vector3D:
 
         :param rhs: other Vector3D.
         """
-        return (is_near_zero(self.x - rhs.x) and is_near_zero(self.y - rhs.y) and is_near_zero(self.z - rhs.z))
+        return is_near_zero(self.x - rhs.x) and is_near_zero(self.y - rhs.y) and is_near_zero(self.z - rhs.z)
 
     def __ne__(self, rhs: Vector3D) -> bool:
         """Test for inequality between two vectors.
@@ -85,11 +83,11 @@ class Vector3D:
 
     def __str__(self) -> str:
         """Pretty print representation."""
-        return f'({self.x:.2f}, {self.y:.2f}, {self.z:.2f})'
+        return f"({self.x:.2f}, {self.y:.2f}, {self.z:.2f})"
 
     def __repr__(self) -> str:
         """Unambiguous representation."""
-        return f'Vector3D({self.x:.2f}, {self.y:.2f}, {self.z:.2f})'
+        return f"Vector3D({self.x:.2f}, {self.y:.2f}, {self.z:.2f})"
 
     def copy(self) -> Vector3D:
         """Copy the current vector."""
@@ -101,9 +99,9 @@ class Vector3D:
 
     def cross(self, rhs: Vector3D) -> Vector3D:
         """Return the cross product of the vector with another one."""
-        return Vector3D(self.y * rhs.z - self.z * rhs.y,
-                        self.z * rhs.x - self.x * rhs.z,
-                        self.x * rhs.y - self.y * rhs.x)
+        return Vector3D(
+            self.y * rhs.z - self.z * rhs.y, self.z * rhs.x - self.x * rhs.z, self.x * rhs.y - self.y * rhs.x
+        )
 
     def length_sq(self) -> float:
         """Return the square value of the euclidean norm."""
@@ -163,18 +161,9 @@ class Vector3D:
 
         :param matrix: transforamtion matrix
         """
-        x = matrix.elem00 * self.x + \
-            matrix.elem10 * self.y + \
-            matrix.elem20 * self.z + \
-            matrix.elem30
-        y = matrix.elem01 * self.x + \
-            matrix.elem11 * self.y + \
-            matrix.elem21 * self.z + \
-            matrix.elem31
-        z = matrix.elem02 * self.x + \
-            matrix.elem12 * self.y + \
-            matrix.elem22 * self.z + \
-            matrix.elem32
+        x = matrix.elem00 * self.x + matrix.elem10 * self.y + matrix.elem20 * self.z + matrix.elem30
+        y = matrix.elem01 * self.x + matrix.elem11 * self.y + matrix.elem21 * self.z + matrix.elem31
+        z = matrix.elem02 * self.x + matrix.elem12 * self.y + matrix.elem22 * self.z + matrix.elem32
         self.x, self.y, self.z = x, y, z
 
     def diff_length_sq(self, rhs: Vector3D) -> float:
@@ -204,38 +193,8 @@ class Vector3D:
     def from_numpy(array: np.array) -> Vector3D:
         """Instanciate a Vector3D from numpy array."""
         if len(array) > 3:
-            raise ValueError(f'numpy.array({array}) has more values than Vector3D can hold.')
+            raise ValueError(f"numpy.array({array}) has more values than Vector3D can hold.")
         return Vector3D(array[0], array[1], array[2])
-
-
-def normalize_angle(angle: float):
-    """Normalize angle to be between -pi and +pi.
-
-    :param angle: angle in radians
-    """
-    while abs(angle) > math.pi:
-        if angle > math.pi:
-            angle -= math.pi * 2
-        if angle < -math.pi:
-            angle += 2 * math.pi
-    if is_near_zero(abs(angle + math.pi)):
-        angle = math.pi
-    return angle
-
-
-def angle_diff(angle1: float, angle2: float, radians: bool = True) -> float:
-    """Calculate the difference between two angles.
-
-    :param angle1: angle (in radians unless specified)
-    :param angle2: angle (in radians unless specified)
-    """
-    if not radians:
-        angle1 = angle1 * math.pi / 180
-        angle2 = angle2 * math.pi / 180
-    norm_angle1 = normalize_angle(angle1)
-    norm_angle2 = normalize_angle(angle2)
-    diff = normalize_angle(norm_angle1 - norm_angle2)
-    return diff if radians else radians / math.pi * 180
 
 
 def pos_distance(p1, p2):
@@ -249,180 +208,3 @@ def pos_distance_sq(p1, p2):
     y = p1.y - p2.y
     z = p1.z - p2.z
     return x * x + y * y + z * z
-
-
-def vec_angle(a, b):
-    """Get the angle between the two vectors."""
-    a_len = a.length()
-    b_len = b.length()
-    if a_len * b_len < 1E-6:
-        return 0.0
-    c = a.dot(b) / a_len / b_len
-    if c >= 1.0:
-        return 0.0
-    elif c <= -1.0:
-        return math.pi
-    else:
-        return math.acos(c)
-
-
-def pos_angle(p1, p2, p3):
-    """Get the angle from three points."""
-    return vec_angle(p1 - p2, p3 - p2)
-
-
-def vec_dihedral(a, axis, c):
-    """Get the dihedral angle between a and c along the axis."""
-    ap = a.perpendicular_vec(axis)
-    cp = c.perpendicular_vec(axis)
-    angle = vec_angle(ap, cp)
-    if ap.cross(cp).dot(axis) > 0:
-        angle = -angle
-    return angle
-
-
-def pos_dihedral(p1, p2, p3, p4):
-    """Get the dihedral angle from four points."""
-    return vec_dihedral(p1 - p2, p2 - p3, p4 - p3)
-
-
-def rotated_pos(theta, anchor, center, pos):
-    """Rotate the position by theta around the center."""
-    return rotation(center - anchor, theta, center).transform_vec(pos)
-
-
-# def ProjectedPos(length, angle, dihedral, p1, p2, p3):
-#     """Project."""
-#     norm = plane_normal(p1, p2, p3)
-#     axis = p3 - p2
-#     vec_diff = axis.scaled_vec(-length)
-#     vec_diff = RotationAtOrigin(norm, -angle).transform_vec(vec_diff)
-#     vec_diff = RotationAtOrigin(axis, dihedral).transform_vec(vec_diff)
-    # return p3 + vec_diff
-
-
-class Matrix3D(np.matrix):
-    """Object to manipulate three-dimensional matrices.
-
-    Wrapper around numpy matrix object with shape (4, 4).
-    """
-
-    def __new__(cls, values: Iterable[float] = None, order='C') -> Matrix3D:
-        """Create a new Matrix3D object.
-
-        :param values: values of the matrix
-        :param order: index order of provided values
-                      'C': column-first indexing (first items of values will make first row)
-                      'F': row-first indexing (first items of values will make first column)
-        """
-        if values is None:
-            self = np.zeros((4, 4), dtype=float)
-        else:
-            len_ = len(list(values))
-            if not len_ == 16:
-                raise ValueError(f'Matrix3D cannot be instanciated with {len_} values')
-            self = np.array(values, dtype=float).reshape((4, 4), order=order)
-        return self.view(cls)
-
-    def transform_vector(self, vector: Vector3D) -> Vector3D:
-        """Apply the transformation to the vector.
-
-        :param vector: vector to be transformed
-        """
-        return Vector3D.from_numpy(self[:3, :3].T * vector.to_numpy_col() + self[3, :3].T)
-
-
-def rotation_at_origin(axis, theta):
-    """Create a matrix for a rotation around the origin.
-
-    :param axis: axis around which the rotation should be performed
-    :param theta: angle of the rotation
-    """
-    v = axis.normal_vec()
-    c = math.cos(float(theta))
-    s = math.sin(float(theta))
-    t = 1.0 - c
-    m = Matrix3D([[t * v.x * v.x + c,
-                   t * v.x * v.y + v.z * s,
-                   t * v.x * v.z - v.y * s,
-                   0],
-                  [t * v.y * v.x - v.z * s,
-                   t * v.y * v.y + c,
-                   t * v.y * v.z + v.x * s,
-                   0],
-                  [t * v.z * v.x + v.y * s,
-                   t * v.z * v.y - v.x * s,
-                   t * v.z * v.z + c,
-                   0],
-                  [0, 0, 0, 0]])
-    return m
-
-
-def translation(vector):
-    """Create a translation matrix.
-
-    :param vector: vector of translation
-    """
-    m = Matrix3D()
-    m[3, :3] = [vector.x, vector.y, vector.z]
-    return m
-
-
-def rotation(axis, theta, center):
-    """Create the matrix to rotate around an axis at center."""
-    rot = rotation_at_origin(axis, theta)
-    trans = translation(center - rot.transform_vec(center))
-    return trans * rot
-
-
-def superposition3(ref1, ref2, ref3, mov1, mov2, mov3):
-    """Superimpose."""
-    mov_diff = mov2 - mov1
-    ref_diff = ref2 - ref1
-
-    m1 = Matrix3D()
-    if math.fabs(vec_angle(mov_diff, ref_diff)) < SMALL:
-        m1 = translation(ref1 - mov1)
-    else:
-        axis = mov_diff.cross(ref_diff)
-        torsion = vec_dihedral(ref_diff, axis, mov_diff)
-        rot = rotation_at_origin(axis, torsion)
-        trans = translation(ref2 - rot.transform_vec(mov2))
-        m1 = trans * rot
-
-    mov_diff = ref2 - m1.transform_vec(mov3)
-    ref_diff = ref2 - ref3
-
-    m = Matrix3D()
-    if math.fabs(vec_angle(mov_diff, ref_diff)) < SMALL:
-        m = m1
-    else:
-        axis = ref2 - ref1
-        torsion = vec_dihedral(ref_diff, axis, mov_diff)
-        m2 = rotation_at_origin(axis, torsion)
-        m3 = translation(ref2 - m2.transform_vec(ref2))
-        m = m3 * m2 * m1
-
-    return m
-
-
-def random_vec():
-    """Get a random vector."""
-    return Vector3D(random.uniform(-100, 100),  # noqa: S311
-                    random.uniform(-100, 100),  # noqa: S311
-                    random.uniform(-100, 100))  # noqa: S311
-
-
-def random_origin_rotation():
-    """Get a random rotation around the origin."""
-    axis = random_vec()
-    angle = random.uniform(-math.pi / 2, math.pi / 2)  # noqa: S311
-    return rotation_at_origin(axis, angle)
-
-
-def random_transform():
-    """Get a random transformation matrix."""
-    axis = random_vec()
-    angle = random.uniform(-math.pi / 2, math.pi / 2)  # noqa: S311
-    center = random_vec()
-    return rotation(axis, angle, center)
