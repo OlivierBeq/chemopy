@@ -4,22 +4,19 @@
 
 import unittest
 
-from rdkit import Chem
-from rdkit.Chem import AllChem
 from chemopy import ChemoPy
 
-from .constants import MOL_MOLECULE
+from .constants import SMALL_MOLECULES_3D
 
 
 class TestDetailsOfDescriptorsAndFingerprints(unittest.TestCase):
     """Tests molecular descriptors."""
 
-    def setUp(self) -> None:
-        """Create the molecular descriptor calculator."""
-        self.cmp = ChemoPy(ignore_3D=False)
-        mol = Chem.Mol(MOL_MOLECULE)
-        _ = AllChem.EmbedMolecule(mol)
-        self.desc_names = self.cmp.calculate([mol], show_banner=False).columns.tolist()
+    @classmethod
+    def setUpClass(cls) -> None:
+        """Create the molecular descriptor calculator (once for the whole class: MOPAC is slow)."""
+        cls.cmp = ChemoPy(ignore_3D=False)
+        cls.desc_names = cls.cmp.calculate([SMALL_MOLECULES_3D[0]], show_banner=False).columns.tolist()
 
     def test_each_descriptor_details(self):
         """Test the details for each descriptor available."""
