@@ -303,8 +303,18 @@ def run_mopac(filename: str, version: str = "2016", n_jobs: int = 1, affinity: l
         # returns immediately, so the caller would look for output files before MOPAC
         # even starts running.
         precmd = "START /WAIT /AFFINITY " + hex(mask)
-    elif platform in ("linux", "darwin"):
+    elif platform == "linux":
         precmd = "taskset --cpu-list " + ",".join(map(str, core_ids))
+    elif platform == "darwin":
+        # macOS has no equivalent of taskset/sched_setaffinity: the OS does not expose a
+        # public API or CLI to pin a process to specific cores, only a best-effort, private
+        # per-thread affinity *hint* (thread_policy_set) that isn't reachable from a
+        # subprocess call. Run unpinned; the number of concurrent MOPAC processes is still
+        # bounded by njobs, just not each one's specific core.
+        warnings.warn(
+            "macOS does not support CPU core affinity pinning; running MOPAC unpinned.", UserWarning
+        )
+        precmd = ""
     else:
         raise RuntimeError(f"Platform ({platform}) not supported.")
     # Run optimization

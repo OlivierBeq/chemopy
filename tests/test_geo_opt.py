@@ -2,7 +2,6 @@
 
 """Tests for MOPAC geometry optimization and core-usage correctness."""
 
-import sys
 import unittest
 from unittest import mock
 
@@ -28,7 +27,14 @@ class TestMopacAvailability(unittest.TestCase):
 
 
 class TestRunMopacCoreUsage(unittest.TestCase):
-    """Tests that run_mopac engages exactly the requested number of distinct cores."""
+    """Tests that run_mopac engages exactly the requested number of distinct cores.
+
+    `geo_opt.platform` (captured once at import time via `from sys import platform`) is
+    mocked directly rather than relying on `sys.platform`, so each of the three platform
+    branches (linux/win32/darwin) is exercised deterministically regardless of which OS
+    actually runs this test file -- e.g. the Windows-specific bitmask/`/WAIT` logic and
+    macOS's "no pinning available" fallback are both verified from a single Linux CI run.
+    """
 
     def setUp(self):
         self.calls = []
@@ -46,38 +52,81 @@ class TestRunMopacCoreUsage(unittest.TestCase):
         self.calls.append(cmd)
         return 0
 
-    def _last_core_ids(self):
+    def _last_core_ids(self, plat):
         """Extract the core ids the last run_mopac() call was pinned to, as a list of ints.
 
-        precmd is either 'taskset --cpu-list <ids> mopac <file>' (Linux/macOS) or
+        precmd is either 'taskset --cpu-list <ids> mopac <file>' (Linux) or
         'START /WAIT /AFFINITY <hexmask> mopac <file>' (Windows).
         """
         cmd = self.calls[-1]
-        if sys.platform.startswith("win32"):
+        if plat == "win32":
             mask = int(cmd.split()[3], 16)
             return [i for i in range(64) if mask & (1 << i)]
         return [int(x) for x in cmd.split()[2].split(",")]
 
-    def test_default_single_core(self):
-        geo_opt.run_mopac("dummy.dat")
-        self.assertEqual(len(self._last_core_ids()), 1)
+    def test_default_single_core_linux(self):
+        with mock.patch.object(geo_opt, "platform", "linux"):
+            geo_opt.run_mopac("dummy.dat")
+        self.assertEqual(len(self._last_core_ids("linux")), 1)
 
-    def test_distinct_cores_without_replacement(self):
-        geo_opt.run_mopac("dummy.dat", n_jobs=4)
-        ids = self._last_core_ids()
+    def test_distinct_cores_without_replacement_linux(self):
+        with mock.patch.object(geo_opt, "platform", "linux"):
+            geo_opt.run_mopac("dummy.dat", n_jobs=4)
+        ids = self._last_core_ids("linux")
         self.assertEqual(len(ids), 4)
         self.assertEqual(len(set(ids)), 4)
 
-    def test_explicit_affinity_is_honored_exactly(self):
-        geo_opt.run_mopac("dummy.dat", affinity=[3])
-        self.assertEqual(self._last_core_ids(), [3])
+    def test_explicit_affinity_is_honored_exactly_linux(self):
+        with mock.patch.object(geo_opt, "platform", "linux"):
+            geo_opt.run_mopac("dummy.dat", affinity=[3])
+        self.assertEqual(self._last_core_ids("linux"), [3])
 
-    def test_oversubscription_is_clipped_with_warning(self):
-        with self.assertWarns(UserWarning):
-            geo_opt.run_mopac("dummy.dat", n_jobs=20)
-        ids = self._last_core_ids()
+    def test_oversubscription_is_clipped_with_warning_linux(self):
+        with mock.patch.object(geo_opt, "platform", "linux"):
+            with self.assertWarns(UserWarning):
+                geo_opt.run_mopac("dummy.dat", n_jobs=20)
+        ids = self._last_core_ids("linux")
         self.assertEqual(len(ids), 8)
         self.assertEqual(len(set(ids)), 8)
+
+    def test_default_single_core_windows(self):
+        with mock.patch.object(geo_opt, "platform", "win32"):
+            geo_opt.run_mopac("dummy.dat")
+        self.assertEqual(len(self._last_core_ids("win32")), 1)
+        self.assertIn("/WAIT", self.calls[-1])
+
+    def test_distinct_cores_without_replacement_windows(self):
+        with mock.patch.object(geo_opt, "platform", "win32"):
+            geo_opt.run_mopac("dummy.dat", n_jobs=4)
+        ids = self._last_core_ids("win32")
+        self.assertEqual(len(ids), 4)
+        self.assertEqual(len(set(ids)), 4)
+
+    def test_explicit_affinity_is_honored_exactly_windows(self):
+        with mock.patch.object(geo_opt, "platform", "win32"):
+            geo_opt.run_mopac("dummy.dat", affinity=[3])
+        self.assertEqual(self._last_core_ids("win32"), [3])
+
+    def test_oversubscription_is_clipped_with_warning_windows(self):
+        with mock.patch.object(geo_opt, "platform", "win32"):
+            with self.assertWarns(UserWarning):
+                geo_opt.run_mopac("dummy.dat", n_jobs=20)
+        ids = self._last_core_ids("win32")
+        self.assertEqual(len(ids), 8)
+        self.assertEqual(len(set(ids)), 8)
+
+    def test_runs_unpinned_with_warning_on_macos(self):
+        with mock.patch.object(geo_opt, "platform", "darwin"):
+            with self.assertWarns(UserWarning):
+                geo_opt.run_mopac("dummy.dat", affinity=[3])
+        self.assertNotIn("taskset", self.calls[-1])
+        self.assertNotIn("AFFINITY", self.calls[-1])
+        self.assertEqual(self.calls[-1].strip(), "mopac dummy.dat")
+
+    def test_unsupported_platform_raises(self):
+        with mock.patch.object(geo_opt, "platform", "aix"):
+            with self.assertRaises(RuntimeError):
+                geo_opt.run_mopac("dummy.dat")
 
 
 class TestGetArcFileAffinity(unittest.TestCase):
