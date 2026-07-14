@@ -7,7 +7,7 @@ name = "chemopy2"
 dynamic = ["version"]
 description = "A Python library calculating molecular descriptors."
 readme = "README.md"
-license = { text = "GNU General Public License v3" }
+license = "GPL-3.0-only"
 authors = [
     { name = "Dongsheng Cao" },
     { name = "Yizeng Liang" },
@@ -21,7 +21,6 @@ classifiers = [
     "Environment :: Console",
     "Intended Audience :: Developers",
     "Intended Audience :: Science/Research",
-    "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
     "Operating System :: OS Independent",
     "Framework :: Pytest",
     "Framework :: Sphinx",
@@ -62,7 +61,10 @@ docs = ["sphinx<7", "sphinx-rtd-theme", "sphinx-autodoc-typehints", "sphinx_auto
 [tool.setuptools]
 package-dir = { "" = "src" }
 zip-safe = false
-include-package-data = true
+# Explicit package-data below is the sole source of truth for non-.py files bundled into
+# the wheel; disabled so build artifacts that happen to sit in src/chemopy/ at build time
+# (e.g. __pycache__, numba's .nbi/.nbc JIT cache) can never leak into a distribution.
+include-package-data = false
 
 [tool.setuptools.packages.find]
 where = ["src"]
@@ -71,7 +73,7 @@ where = ["src"]
 version = { attr = "chemopy.__version__" }
 
 [tool.setuptools.package-data]
-"*" = ["*"]
+chemopy = ["descs.json"]
 
 [tool.ruff]
 line-length = 120
