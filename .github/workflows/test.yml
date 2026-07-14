@@ -21,13 +21,13 @@ jobs:
         with:
           environment-name: chemopy-ci
           create-args: >-
+            -c conda-forge
             python=${{ matrix.python-version }}
             rdkit
             openbabel
             mopac
             pandas
             pip
-          channels: conda-forge
 
       - name: Install chemopy with test dependencies
         shell: bash -el {0}
