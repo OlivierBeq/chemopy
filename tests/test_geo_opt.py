@@ -2,6 +2,7 @@
 
 """Tests for MOPAC geometry optimization and core-usage correctness."""
 
+import sys
 import unittest
 from unittest import mock
 
@@ -46,8 +47,16 @@ class TestRunMopacCoreUsage(unittest.TestCase):
         return 0
 
     def _last_core_ids(self):
-        # precmd is 'taskset --cpu-list <ids> mopac <file>'
-        return self.calls[-1].split()[2].split(",")
+        """Extract the core ids the last run_mopac() call was pinned to, as a list of ints.
+
+        precmd is either 'taskset --cpu-list <ids> mopac <file>' (Linux/macOS) or
+        'START /WAIT /AFFINITY <hexmask> mopac <file>' (Windows).
+        """
+        cmd = self.calls[-1]
+        if sys.platform.startswith("win32"):
+            mask = int(cmd.split()[3], 16)
+            return [i for i in range(64) if mask & (1 << i)]
+        return [int(x) for x in cmd.split()[2].split(",")]
 
     def test_default_single_core(self):
         geo_opt.run_mopac("dummy.dat")
@@ -61,7 +70,7 @@ class TestRunMopacCoreUsage(unittest.TestCase):
 
     def test_explicit_affinity_is_honored_exactly(self):
         geo_opt.run_mopac("dummy.dat", affinity=[3])
-        self.assertEqual(self._last_core_ids(), ["3"])
+        self.assertEqual(self._last_core_ids(), [3])
 
     def test_oversubscription_is_clipped_with_warning(self):
         with self.assertWarns(UserWarning):

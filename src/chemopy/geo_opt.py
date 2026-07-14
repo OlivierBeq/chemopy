@@ -270,7 +270,7 @@ def format_conversion(
     return running_dir, f"{mpo_name}.dat"
 
 
-def run_mopac(filename: str, version: str = "2016", n_jobs: int = 1, affinity: str | list[int] = None) -> int:
+def run_mopac(filename: str, version: str = "2016", n_jobs: int = 1, affinity: list[int] = None) -> int:
     """Run the MOPAC on a well-prepared input file.
 
     Parse default MOPAC config file if not read already.
@@ -278,9 +278,9 @@ def run_mopac(filename: str, version: str = "2016", n_jobs: int = 1, affinity: s
     :param filename: path to the well-prepared MOPAC input file
     :param version: MOPAC version to be used
     :param n_jobs: number of jobs to run in parallel
-    :param affinity: affinity for a core to define for the MOPAC process. If None, randomly determined based on `n_jobs`.
-    On Windows systems, a binary encoded mask (e.g. '00111010' for cores 4, 12, 16, and 20);
-    on UNIX, a 0-indexed list of cores indices (e.g. [3, 11, 15, 19] for cores 4, 12, 16, and 20).
+    :param affinity: 0-indexed list of core indices the MOPAC process should be pinned to
+    (e.g. [3, 11, 15, 19] for cores 4, 12, 16, and 20), on both Windows and UNIX.
+    If None, `n_jobs` distinct cores are randomly drawn.
     """
     # Ensure all requirements are set
     if not is_mopac_version_available(version):
@@ -290,23 +290,20 @@ def run_mopac(filename: str, version: str = "2016", n_jobs: int = 1, affinity: s
     if n_jobs > n_cores:
         warnings.warn(f"Requested {n_jobs} jobs but only {n_cores} cores are available; clipping.", UserWarning)
         n_jobs = n_cores
+    if affinity is not None:
+        core_ids = affinity
+    else:
+        # Draw distinct random core indices: sampling without replacement ensures
+        # n_jobs cores are actually engaged, never fewer due to collisions.
+        core_ids = np.random.default_rng().choice(n_cores, size=n_jobs, replace=False)
     if platform.startswith("win32"):
-        if affinity is not None:
-            # Ensure the affinity is Windows compatible
-            assert len(set(map(int, set(affinity))).difference({0, 1})) == 0, "Not a Windows-compatible affinity."
-            mask = affinity
-        else:
-            mask = list("1" * n_jobs + "0" * (n_cores - n_jobs))
-            # Randomize the mask
-            np.random.default_rng().shuffle(mask)
-        precmd = "START /AFFINITY " + hex(int("".join(mask), 2))
+        # Windows CPU affinity mask: bit i (value 2**i) selects core i.
+        mask = sum(1 << int(core) for core in core_ids)
+        # /WAIT is required: without it, START launches MOPAC in a detached window and
+        # returns immediately, so the caller would look for output files before MOPAC
+        # even starts running.
+        precmd = "START /WAIT /AFFINITY " + hex(mask)
     elif platform in ("linux", "darwin"):
-        if affinity is not None:
-            core_ids = affinity
-        else:
-            # Draw distinct random core indices: sampling without replacement
-            # ensures n_jobs cores are actually engaged, never fewer due to collisions.
-            core_ids = np.random.default_rng().choice(n_cores, size=n_jobs, replace=False)
         precmd = "taskset --cpu-list " + ",".join(map(str, core_ids))
     else:
         raise RuntimeError(f"Platform ({platform}) not supported.")
